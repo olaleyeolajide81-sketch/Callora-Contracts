@@ -107,8 +107,9 @@ Source: [`contracts/vault/src/events.rs`](../contracts/vault/src/events.rs)
 | 45 | `sweep_cancelled`         | `event_sweep_cancelled`        | Admin cancels a pending sweep                 |
 | 46 | `tl_window_changed`       | `event_timelock_window_changed`| Admin updates timelock window                 |
 | 47 | `allowlist_remove`        | `event_allowlist_remove`       | Single address removed from deposit allowlist |
+| 48 | `ownership_cancelled`     | `event_ownership_cancelled`    | Owner cancels pending ownership transfer      |
 
-**Total: 47 topics**
+**Total: 48 topics**
 
 ---
 
