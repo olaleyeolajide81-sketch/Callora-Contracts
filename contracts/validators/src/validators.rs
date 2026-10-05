@@ -179,3 +179,18 @@ pub fn require_in_range(value: i128, min: i128, max: i128) -> Result<i128, Valid
     }
     Ok(value)
 }
+
+/// Pure reference predicate mirroring [`normalize_visible_ascii`] over raw bytes.
+///
+/// Used by property tests to check the on-chain validator against an independent
+/// oracle that does not touch the Soroban host.
+pub fn bytes_are_visible_ascii(bytes: &[u8]) -> bool {
+    let len = bytes.len();
+    if len == 0 || len > MAX_VALIDATED_STRING_LEN as usize {
+        return false;
+    }
+    if bytes[0] == b' ' || bytes[len - 1] == b' ' {
+        return false;
+    }
+    bytes.iter().all(|b| (0x20..=0x7e).contains(b))
+}

@@ -125,7 +125,10 @@ fn owner_can_deduct_when_authorized_caller_is_none() {
 
     let result = client.try_deduct(&owner, &100i128, &1u64);
 
-    assert!(result.is_ok(), "owner deduct with unset caller must succeed");
+    assert!(
+        result.is_ok(),
+        "owner deduct with unset caller must succeed"
+    );
     assert_eq!(client.balance(), 900);
 }
 

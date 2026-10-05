@@ -85,6 +85,7 @@ fn setup_with_mock_all(
         &None,
         &None,
         &None,
+        &None,
     );
     (
         owner,
@@ -110,6 +111,7 @@ fn setup_no_mock(env: &Env) -> (Address, Address, CalloraVaultClient<'_>, Addres
         &owner,
         &usdc_addr,
         &Some(1_000_000),
+        &None,
         &None,
         &None,
         &None,

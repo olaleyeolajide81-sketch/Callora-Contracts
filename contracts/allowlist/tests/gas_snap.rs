@@ -85,7 +85,16 @@ fn setup_allowlist_fixture() -> AllowlistFixture<'static> {
     let usdc_admin = token::StellarAssetClient::new(env, &usdc_addr);
     usdc_admin.mint(&vault_addr, &1_000);
 
-    client.init(&owner, &usdc_addr, &Some(1_000), &None, &None, &None, &None);
+    client.init(
+        &owner,
+        &usdc_addr,
+        &Some(1_000),
+        &None,
+        &None,
+        &None,
+        &None,
+        &None,
+    );
 
     AllowlistFixture {
         env: env.clone(),

@@ -45,7 +45,7 @@ pub fn rescue_funds(
     let available = match protected_balance {
         Some(protected) => on_ledger_balance
             .checked_sub(protected)
-            .ok_tor(VaultError::InsufficientBalance)?,
+            .ok_or(VaultError::InsufficientBalance)?,
         None => on_ledger_balance,
     };
 

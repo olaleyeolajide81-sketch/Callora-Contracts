@@ -200,13 +200,27 @@ mod tests {
 
         // Equal sequence fails
         let result_equal = client.try_receive_payment(&vault, &500i128, &true, &None, &t, &20u32);
-        assert!(result_equal.is_err(), "equal pool ledger_seq should be rejected");
-        assert_eq!(client.get_global_pool().total_balance, 1000, "pool balance unchanged on rejected replay");
+        assert!(
+            result_equal.is_err(),
+            "equal pool ledger_seq should be rejected"
+        );
+        assert_eq!(
+            client.get_global_pool().total_balance,
+            1000,
+            "pool balance unchanged on rejected replay"
+        );
 
         // Lower sequence fails
         let result_lower = client.try_receive_payment(&vault, &500i128, &true, &None, &t, &10u32);
-        assert!(result_lower.is_err(), "lower pool ledger_seq should be rejected");
-        assert_eq!(client.get_global_pool().total_balance, 1000, "pool balance unchanged on rejected replay");
+        assert!(
+            result_lower.is_err(),
+            "lower pool ledger_seq should be rejected"
+        );
+        assert_eq!(
+            client.get_global_pool().total_balance,
+            1000,
+            "pool balance unchanged on rejected replay"
+        );
     }
 
     /// Reorg scenario: same transaction replayed after a reorg that returns to

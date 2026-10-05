@@ -308,8 +308,10 @@ impl CalloraHot {
             .instance()
             .set(&StorageKey::Signer, &new_signer);
 
-        env.events()
-            .publish((events::event_signer_rotated(&env), caller), (old_signer, new_signer));
+        env.events().publish(
+            (events::event_signer_rotated(&env), caller),
+            (old_signer, new_signer),
+        );
 
         Ok(())
     }
@@ -407,9 +409,7 @@ impl CalloraHot {
             .get(&StorageKey::PendingAdmin)
             .ok_or(HotError::NoPendingAdmin)?;
 
-        env.storage()
-            .instance()
-            .remove(&StorageKey::PendingAdmin);
+        env.storage().instance().remove(&StorageKey::PendingAdmin);
 
         env.events()
             .publish((events::event_admin_cancelled(&env), caller), cancelled);

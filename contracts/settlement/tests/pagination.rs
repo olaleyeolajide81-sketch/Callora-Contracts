@@ -13,9 +13,7 @@
 
 extern crate std;
 
-use callora_settlement::{
-    CalloraSettlement, CalloraSettlementClient, StorageKey, INDEX_PAGE_SIZE,
-};
+use callora_settlement::{CalloraSettlement, CalloraSettlementClient, StorageKey, INDEX_PAGE_SIZE};
 use soroban_sdk::testutils::Address as _;
 use soroban_sdk::{Address, Env, Vec};
 
@@ -69,10 +67,7 @@ fn instance_storage_has_no_developer_index_vector() {
     // The contract address is the last registered; we need to inspect its storage.
     let contract_id = client.address.clone();
     env.as_contract(&contract_id, || {
-        let has_old_key = env
-            .storage()
-            .instance()
-            .has(&StorageKey::DeveloperIndex);
+        let has_old_key = env.storage().instance().has(&StorageKey::DeveloperIndex);
         assert!(
             !has_old_key,
             "DeveloperIndex must not be in instance storage after #1132"
@@ -94,10 +89,7 @@ fn instance_storage_holds_page_count_not_address_list() {
 
     let contract_id = client.address.clone();
     env.as_contract(&contract_id, || {
-        let page_count: Option<u32> = env
-            .storage()
-            .instance()
-            .get(&StorageKey::IndexPageCount);
+        let page_count: Option<u32> = env.storage().instance().get(&StorageKey::IndexPageCount);
         assert!(
             page_count.is_some(),
             "IndexPageCount must be present in instance storage"
@@ -180,11 +172,7 @@ fn index_page_allocation_respects_page_size() {
             .persistent()
             .get(&StorageKey::IndexPage(0))
             .expect("page 0 must exist");
-        assert_eq!(
-            page0.len(),
-            INDEX_PAGE_SIZE,
-            "page 0 must be full"
-        );
+        assert_eq!(page0.len(), INDEX_PAGE_SIZE, "page 0 must be full");
 
         let page1: Vec<Address> = env
             .storage()
@@ -209,8 +197,7 @@ fn get_developer_balances_page_returns_all_developers() {
     assert_eq!(page.len(), 5, "all 5 developers must appear");
 
     // Every credited dev must appear in the result.
-    let returned_addrs: std::vec::Vec<Address> =
-        page.iter().map(|b| b.address.clone()).collect();
+    let returned_addrs: std::vec::Vec<Address> = page.iter().map(|b| b.address.clone()).collect();
     for dev in &devs {
         assert!(
             returned_addrs.contains(dev),
@@ -235,7 +222,8 @@ fn cursor_pagination_returns_each_developer_exactly_once() {
     let page_size = 3u32;
 
     loop {
-        let (page, next) = client.get_developer_balances_cursor(&admin, &cursor, &page_size, &token);
+        let (page, next) =
+            client.get_developer_balances_cursor(&admin, &cursor, &page_size, &token);
         for b in page.iter() {
             // Use a byte representation since soroban Address isn't Hash.
             let key = format!("{:?}", b.address);
@@ -265,7 +253,10 @@ fn get_developer_balances_page_start_offset_works() {
     assert_eq!(page.len(), 3);
     // Entries must match positions 2..5 of the full list.
     for i in 0..3usize {
-        assert_eq!(page.get(i as u32).unwrap().address, full.get((i + 2) as u32).unwrap().address);
+        assert_eq!(
+            page.get(i as u32).unwrap().address,
+            full.get((i + 2) as u32).unwrap().address
+        );
     }
 }
 
@@ -319,7 +310,11 @@ fn migrate_index_to_pages_moves_entries_and_removes_old_key() {
 
     // All developers must now appear via the paginated view.
     let page = client.get_developer_balances_page(&admin, &0u32, &100u32, &token);
-    assert_eq!(page.len(), 5, "all 5 migrated developers must appear in paginated view");
+    assert_eq!(
+        page.len(),
+        5,
+        "all 5 migrated developers must appear in paginated view"
+    );
 }
 
 /// Running `migrate_index_to_pages` twice is a no-op on the second call.

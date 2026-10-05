@@ -16,7 +16,6 @@
 //! RPC simulation alone does not extend on-chain lifetime; clients that only
 //! simulate views still need a submitted invocation or TTL-extension transaction.
 
-pub mod events;
 pub mod errors;
 pub mod events;
 pub mod limits;

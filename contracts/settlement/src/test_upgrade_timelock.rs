@@ -14,9 +14,14 @@
 
 #![cfg(test)]
 
-use soroban_sdk::{testutils::Address as _, Address, BytesN, Env};
+use soroban_sdk::{
+    testutils::{Address as _, Ledger as _},
+    Address, BytesN, Env,
+};
 
-use crate::{CalloraSettlement, CalloraSettlementClient, SettlementError, UPGRADE_TIMELOCK_SECONDS};
+use crate::{
+    CalloraSettlement, CalloraSettlementClient, SettlementError, UPGRADE_TIMELOCK_SECONDS,
+};
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
@@ -65,7 +70,7 @@ fn test_propose_upgrade_rejects_zero_hash() {
         .try_propose_upgrade(&admin, &zero_hash(&env))
         .unwrap_err()
         .unwrap();
-    assert_eq!(err, SettlementError::ZeroWasmHash);
+    assert_eq!(err, SettlementError::ZeroWasmHash.into());
 }
 
 #[test]
@@ -77,7 +82,7 @@ fn test_propose_upgrade_rejects_non_admin() {
         .try_propose_upgrade(&stranger, &hash)
         .unwrap_err()
         .unwrap();
-    assert_eq!(err, SettlementError::Unauthorized);
+    assert_eq!(err, SettlementError::Unauthorized.into());
 }
 
 #[test]
@@ -93,7 +98,10 @@ fn test_propose_upgrade_replaces_existing_proposal() {
     client.propose_upgrade(&admin, &hash2);
 
     let pending = client.get_pending_upgrade().expect("proposal should exist");
-    assert_eq!(pending.wasm_hash, hash2, "second proposal should replace first");
+    assert_eq!(
+        pending.wasm_hash, hash2,
+        "second proposal should replace first"
+    );
     // execute_after should be based on the new proposed_at (original + 1000 + delay)
     assert!(pending.execute_after > 1000 + UPGRADE_TIMELOCK_SECONDS - 1);
 }
@@ -110,11 +118,8 @@ fn test_execute_upgrade_rejects_before_delay() {
     env.ledger()
         .with_mut(|l| l.timestamp += UPGRADE_TIMELOCK_SECONDS - 1);
 
-    let err = client
-        .try_execute_upgrade(&admin)
-        .unwrap_err()
-        .unwrap();
-    assert_eq!(err, SettlementError::UpgradeTimelockNotExpired);
+    let err = client.try_execute_upgrade(&admin).unwrap_err().unwrap();
+    assert_eq!(err, SettlementError::UpgradeTimelockNotExpired.into());
 }
 
 #[test]
@@ -127,21 +132,15 @@ fn test_execute_upgrade_rejects_non_admin() {
     env.ledger()
         .with_mut(|l| l.timestamp += UPGRADE_TIMELOCK_SECONDS + 1);
 
-    let err = client
-        .try_execute_upgrade(&stranger)
-        .unwrap_err()
-        .unwrap();
-    assert_eq!(err, SettlementError::Unauthorized);
+    let err = client.try_execute_upgrade(&stranger).unwrap_err().unwrap();
+    assert_eq!(err, SettlementError::Unauthorized.into());
 }
 
 #[test]
 fn test_execute_upgrade_fails_when_no_pending() {
     let (_env, client, admin, _vault) = setup();
-    let err = client
-        .try_execute_upgrade(&admin)
-        .unwrap_err()
-        .unwrap();
-    assert_eq!(err, SettlementError::NoUpgradePending);
+    let err = client.try_execute_upgrade(&admin).unwrap_err().unwrap();
+    assert_eq!(err, SettlementError::NoUpgradePending.into());
 }
 
 #[test]
@@ -187,7 +186,10 @@ fn test_cancel_upgrade_clears_proposal() {
     let hash = dummy_hash(&env);
     client.propose_upgrade(&admin, &hash);
 
-    assert!(client.get_pending_upgrade().is_some(), "proposal should exist before cancel");
+    assert!(
+        client.get_pending_upgrade().is_some(),
+        "proposal should exist before cancel"
+    );
 
     client.cancel_upgrade(&admin);
 
@@ -204,21 +206,15 @@ fn test_cancel_upgrade_rejects_non_admin() {
     let hash = dummy_hash(&env);
     client.propose_upgrade(&admin, &hash);
 
-    let err = client
-        .try_cancel_upgrade(&stranger)
-        .unwrap_err()
-        .unwrap();
-    assert_eq!(err, SettlementError::Unauthorized);
+    let err = client.try_cancel_upgrade(&stranger).unwrap_err().unwrap();
+    assert_eq!(err, SettlementError::Unauthorized.into());
 }
 
 #[test]
 fn test_cancel_upgrade_fails_when_no_pending() {
     let (_env, client, admin, _vault) = setup();
-    let err = client
-        .try_cancel_upgrade(&admin)
-        .unwrap_err()
-        .unwrap();
-    assert_eq!(err, SettlementError::NoUpgradePending);
+    let err = client.try_cancel_upgrade(&admin).unwrap_err().unwrap();
+    assert_eq!(err, SettlementError::NoUpgradePending.into());
 }
 
 #[test]
@@ -263,7 +259,9 @@ fn test_upgrade_alias_behaves_like_propose() {
     // `upgrade` is the deprecated alias for `propose_upgrade`.
     client.upgrade(&admin, &hash);
 
-    let pending = client.get_pending_upgrade().expect("alias should create proposal");
+    let pending = client
+        .get_pending_upgrade()
+        .expect("alias should create proposal");
     assert_eq!(pending.wasm_hash, hash);
     assert_eq!(pending.proposed_at, now);
     assert_eq!(pending.execute_after, now + UPGRADE_TIMELOCK_SECONDS);

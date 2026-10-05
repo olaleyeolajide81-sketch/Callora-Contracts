@@ -29,8 +29,6 @@
 //! `propose_emergency_drain`, `cancel_emergency_drain`,
 //! `execute_emergency_drain` (after 24 h timelock)
 
-#![no_std]
-
 extern crate std;
 
 use soroban_sdk::token as soroban_token;
@@ -121,12 +119,12 @@ fn setup<'a>(env: &'a Env) -> Ctx<'a> {
     vault.init(
         &owner,
         &usdc_addr,
-        &1_000_000,
-        &authorized_caller,
-        &1,
+        &Some(1_000_000),
+        &Some(authorized_caller.clone()),
+        &Some(1),
         &Some(pool_addr.clone()),
-        &100_000_000,
-        &settlement_addr,
+        &Some(100_000_000),
+        &Some(settlement_addr.clone()),
     );
 
     settlement.init(&admin, &vault_addr);
@@ -274,7 +272,10 @@ mod vault {
         let env = Env::default();
         env.mock_all_auths();
         let ctx = setup(&env);
-        assert!(ctx.vault.try_set_authorized_caller(&ctx.owner).is_ok());
+        assert!(ctx
+            .vault
+            .try_set_authorized_caller(&Some(ctx.owner.clone()), &0u64)
+            .is_ok());
     }
 
     #[test]
@@ -283,7 +284,10 @@ mod vault {
         env.mock_all_auths();
         let ctx = setup(&env);
         ctx.env.set_auths(&[]);
-        assert!(ctx.vault.try_set_authorized_caller(&ctx.outsider).is_err());
+        assert!(ctx
+            .vault
+            .try_set_authorized_caller(&Some(ctx.outsider.clone()), &0u64)
+            .is_err());
     }
 
     // -----------------------------------------------------------------------

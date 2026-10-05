@@ -109,11 +109,7 @@ pub fn emit_freeze_initialized(env: &Env, admin: &Address) {
 /// Data: [`FreezeSetEvent`] with `reason` and `frozen_at`.
 pub fn emit_freeze_set(env: &Env, caller: &Address, reason: Symbol, frozen_at: u64) {
     env.events().publish(
-        (
-            event_freeze_set(env),
-            event_version_v1(env),
-            caller.clone(),
-        ),
+        (event_freeze_set(env), event_version_v1(env), caller.clone()),
         FreezeSetEvent { reason, frozen_at },
     );
 }

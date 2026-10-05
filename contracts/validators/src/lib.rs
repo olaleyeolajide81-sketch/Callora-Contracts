@@ -21,9 +21,10 @@ mod views;
 
 pub use errors::ValidatorError;
 pub use validators::{
-    checked_add_amount, is_valid_offering_id, is_valid_offering_id_byte, is_visible_ascii_metadata,
-    normalize_offering_id, normalize_visible_ascii, require_in_range, require_non_negative_amount,
-    require_positive_amount, MAX_OFFERING_ID_LEN, MAX_VALIDATED_STRING_LEN,
+    bytes_are_visible_ascii, checked_add_amount, is_valid_offering_id, is_valid_offering_id_byte,
+    is_visible_ascii_metadata, normalize_offering_id, normalize_visible_ascii, require_in_range,
+    require_non_negative_amount, require_positive_amount, MAX_OFFERING_ID_LEN,
+    MAX_VALIDATED_STRING_LEN,
 };
 pub use views::{
     capabilities, ALL_CAPABILITIES, CAP_AMOUNT_VALIDATION, CAP_CHECKED_ARITHMETIC,

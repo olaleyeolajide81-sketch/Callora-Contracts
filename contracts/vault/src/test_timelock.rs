@@ -12,9 +12,8 @@ use soroban_sdk::testutils::{Address as _, Events as _, Ledger as _};
 use soroban_sdk::{token, Address, BytesN, Env, IntoVal, Symbol};
 
 use super::{
-    timelock, CalloraVault, CalloraVaultClient, StorageKey, VaultError,
-    DEFAULT_TIMELOCK_SECONDS, MAX_TIMELOCK_SECONDS, MIN_TIMELOCK_SECONDS,
-    PROPOSAL_GRACE_SECONDS,
+    timelock, CalloraVault, CalloraVaultClient, StorageKey, VaultError, DEFAULT_TIMELOCK_SECONDS,
+    MAX_TIMELOCK_SECONDS, MIN_TIMELOCK_SECONDS, PROPOSAL_GRACE_SECONDS,
 };
 use timelock::{
     LegacyPendingPause, LegacyPendingSweep, LegacyPendingUpgrade, PendingPause, PendingSweep,
@@ -77,10 +76,7 @@ fn set_window_updates_storage_and_emits_event() {
     let (_, client, admin, _, vault_addr) = setup(&env);
     client.set_timelock_window(&admin, &(MIN_TIMELOCK_SECONDS + 60));
     let events = env.events().all();
-    assert_eq!(
-        client.get_timelock_window(),
-        MIN_TIMELOCK_SECONDS + 60
-    );
+    assert_eq!(client.get_timelock_window(), MIN_TIMELOCK_SECONDS + 60);
 
     // Verify the change event was emitted.
     let last = events.last().expect("expected event");
@@ -110,8 +106,7 @@ fn set_window_event_payload_default_to_custom() {
     // data == (old_window, new_window)
     let payload: (u64, u64) = last.2.into_val(&env);
     assert_eq!(
-        payload.0,
-        DEFAULT_TIMELOCK_SECONDS,
+        payload.0, DEFAULT_TIMELOCK_SECONDS,
         "first element must be the DEFAULT (old) window, not the new value"
     );
     assert_eq!(
@@ -143,7 +138,9 @@ fn set_window_event_payload_custom_to_custom() {
     assert_eq!(client.get_timelock_window(), second_window);
 
     let events = env.events().all();
-    let last = events.last().expect("expected second tl_window_changed event");
+    let last = events
+        .last()
+        .expect("expected second tl_window_changed event");
     assert_eq!(last.0, vault_addr);
 
     let topic0: Symbol = last.1.get(0).unwrap().into_val(&env);
@@ -179,10 +176,7 @@ fn set_window_rejects_out_of_bounds_low() {
     let env = Env::default();
     let (_, client, admin, _, _) = setup(&env);
     let res = client.try_set_timelock_window(&admin, &(MIN_TIMELOCK_SECONDS - 1));
-    assert_eq!(
-        res.unwrap_err().unwrap(),
-        VaultError::InvalidTimelockWindow
-    );
+    assert_eq!(res.unwrap_err().unwrap(), VaultError::InvalidTimelockWindow);
 }
 
 #[test]
@@ -190,10 +184,7 @@ fn set_window_rejects_zero() {
     let env = Env::default();
     let (_, client, admin, _, _) = setup(&env);
     let res = client.try_set_timelock_window(&admin, &0u64);
-    assert_eq!(
-        res.unwrap_err().unwrap(),
-        VaultError::InvalidTimelockWindow
-    );
+    assert_eq!(res.unwrap_err().unwrap(), VaultError::InvalidTimelockWindow);
 }
 
 #[test]
@@ -201,10 +192,7 @@ fn set_window_rejects_out_of_bounds_high() {
     let env = Env::default();
     let (_, client, admin, _, _) = setup(&env);
     let res = client.try_set_timelock_window(&admin, &(MAX_TIMELOCK_SECONDS + 1));
-    assert_eq!(
-        res.unwrap_err().unwrap(),
-        VaultError::InvalidTimelockWindow
-    );
+    assert_eq!(res.unwrap_err().unwrap(), VaultError::InvalidTimelockWindow);
 }
 
 #[test]
@@ -212,9 +200,13 @@ fn set_window_accepts_known_boundaries() {
     let env = Env::default();
     let (_, client, admin, _, _) = setup(&env);
     // Lower bound (inclusive).
-    assert!(client.try_set_timelock_window(&admin, &MIN_TIMELOCK_SECONDS).is_ok());
+    assert!(client
+        .try_set_timelock_window(&admin, &MIN_TIMELOCK_SECONDS)
+        .is_ok());
     // Upper bound (inclusive).
-    assert!(client.try_set_timelock_window(&admin, &MAX_TIMELOCK_SECONDS).is_ok());
+    assert!(client
+        .try_set_timelock_window(&admin, &MAX_TIMELOCK_SECONDS)
+        .is_ok());
 }
 
 // ---------------------------------------------------------------------------
@@ -248,10 +240,7 @@ fn execute_pause_fails_before_window() {
     env.ledger()
         .set_timestamp(1_700_000_000 + DEFAULT_TIMELOCK_SECONDS - 1);
     let res = client.try_execute_pause(&admin);
-    assert_eq!(
-        res.unwrap_err().unwrap(),
-        VaultError::TimelockNotExpired
-    );
+    assert_eq!(res.unwrap_err().unwrap(), VaultError::TimelockNotExpired);
     assert!(!client.is_paused());
     // Pause proposal should still be live.
     assert!(client.get_pending_pause().is_some());
@@ -278,7 +267,8 @@ fn execute_pause_succeeds_within_grace_period() {
     let (_, client, admin, _, _) = setup(&env);
     client.propose_pause(&admin);
     // Boundary of grace period: execute_after + PROPOSAL_GRACE_SECONDS
-    env.ledger().set_timestamp(1_700_000_000 + DEFAULT_TIMELOCK_SECONDS + PROPOSAL_GRACE_SECONDS);
+    env.ledger()
+        .set_timestamp(1_700_000_000 + DEFAULT_TIMELOCK_SECONDS + PROPOSAL_GRACE_SECONDS);
     client.execute_pause(&admin);
     assert!(client.is_paused());
     assert!(client.get_pending_pause().is_none());
@@ -290,7 +280,8 @@ fn execute_pause_fails_after_expiry() {
     let (_, client, admin, _, _) = setup(&env);
     client.propose_pause(&admin);
     // 1 second past expiry
-    env.ledger().set_timestamp(1_700_000_000 + DEFAULT_TIMELOCK_SECONDS + PROPOSAL_GRACE_SECONDS + 1);
+    env.ledger()
+        .set_timestamp(1_700_000_000 + DEFAULT_TIMELOCK_SECONDS + PROPOSAL_GRACE_SECONDS + 1);
     let res = client.try_execute_pause(&admin);
     assert_eq!(res.unwrap_err().unwrap(), VaultError::ProposalExpired);
     assert!(!client.is_paused());
@@ -356,10 +347,7 @@ fn execute_upgrade_fails_before_window() {
     env.ledger()
         .set_timestamp(1_700_000_000 + DEFAULT_TIMELOCK_SECONDS - 1);
     let res = client.try_execute_upgrade(&admin);
-    assert_eq!(
-        res.unwrap_err().unwrap(),
-        VaultError::TimelockNotExpired
-    );
+    assert_eq!(res.unwrap_err().unwrap(), VaultError::TimelockNotExpired);
     assert!(client.get_pending_upgrade().is_some());
 }
 
@@ -367,7 +355,9 @@ fn execute_upgrade_fails_before_window() {
 fn execute_upgrade_succeeds_at_boundary_and_records_version() {
     let env = Env::default();
     let (_, client, admin, _, _) = setup(&env);
-    let hash = env.deployer().upload_contract_wasm(soroban_sdk::Bytes::new(&env));
+    let hash = env
+        .deployer()
+        .upload_contract_wasm(soroban_sdk::Bytes::new(&env));
     client.propose_upgrade(&admin, &hash);
     env.ledger()
         .set_timestamp(1_700_000_000 + DEFAULT_TIMELOCK_SECONDS);
@@ -380,7 +370,9 @@ fn execute_upgrade_succeeds_at_boundary_and_records_version() {
 fn execute_upgrade_succeeds_within_grace_period() {
     let env = Env::default();
     let (_, client, admin, _, _) = setup(&env);
-    let hash = env.deployer().upload_contract_wasm(soroban_sdk::Bytes::new(&env));
+    let hash = env
+        .deployer()
+        .upload_contract_wasm(soroban_sdk::Bytes::new(&env));
     client.propose_upgrade(&admin, &hash);
     env.ledger()
         .set_timestamp(1_700_000_000 + DEFAULT_TIMELOCK_SECONDS + PROPOSAL_GRACE_SECONDS);
@@ -393,7 +385,9 @@ fn execute_upgrade_succeeds_within_grace_period() {
 fn execute_upgrade_fails_after_expiry() {
     let env = Env::default();
     let (_, client, admin, _, _) = setup(&env);
-    let hash = env.deployer().upload_contract_wasm(soroban_sdk::Bytes::new(&env));
+    let hash = env
+        .deployer()
+        .upload_contract_wasm(soroban_sdk::Bytes::new(&env));
     client.propose_upgrade(&admin, &hash);
     env.ledger()
         .set_timestamp(1_700_000_000 + DEFAULT_TIMELOCK_SECONDS + PROPOSAL_GRACE_SECONDS + 1);
@@ -451,10 +445,7 @@ fn execute_sweep_fails_before_window() {
     env.ledger()
         .set_timestamp(1_700_000_000 + DEFAULT_TIMELOCK_SECONDS - 1);
     let res = client.try_execute_sweep(&admin);
-    assert_eq!(
-        res.unwrap_err().unwrap(),
-        VaultError::TimelockNotExpired
-    );
+    assert_eq!(res.unwrap_err().unwrap(), VaultError::TimelockNotExpired);
     assert!(client.get_pending_sweep().is_some());
 }
 
@@ -719,29 +710,17 @@ fn cancel_pause_event_reports_whether_a_proposal_was_consumed() {
 fn saturating_deadline_handles_boundary() {
     let _env = Env::default();
     // zero window -> returns proposed_at unchanged
-    assert_eq!(
-        timelock::saturating_deadline(1_000, 0),
-        Some(1_000)
-    );
+    assert_eq!(timelock::saturating_deadline(1_000, 0), Some(1_000));
     // fits
-    assert_eq!(
-        timelock::saturating_deadline(100, 50),
-        Some(150)
-    );
+    assert_eq!(timelock::saturating_deadline(100, 50), Some(150));
     // exact max
     assert_eq!(
         timelock::saturating_deadline(u64::MAX - 5, 5),
         Some(u64::MAX)
     );
     // overflow -> None
-    assert_eq!(
-        timelock::saturating_deadline(u64::MAX, 1),
-        None
-    );
-    assert_eq!(
-        timelock::saturating_deadline(u64::MAX - 1, 5),
-        None
-    );
+    assert_eq!(timelock::saturating_deadline(u64::MAX, 1), None);
+    assert_eq!(timelock::saturating_deadline(u64::MAX - 1, 5), None);
 }
 
 // ---------------------------------------------------------------------------
@@ -767,14 +746,17 @@ fn legacy_pending_pause_migrates_and_exposes_expiry() {
     });
 
     // Calling the getter migrates to new shape and exposes derived expires_at.
-    let proposal = client.get_pending_pause().expect("expected migrated proposal");
+    let proposal = client
+        .get_pending_pause()
+        .expect("expected migrated proposal");
     assert_eq!(proposal.proposed_at, proposed_at);
     assert_eq!(proposal.execute_after, execute_after);
     assert_eq!(proposal.expires_at, execute_after + PROPOSAL_GRACE_SECONDS);
 
     // Verify storage now holds the upgraded struct.
     env.as_contract(&vault_addr, || {
-        let stored: Option<PendingPause> = env.storage().persistent().get(&StorageKey::PendingPause);
+        let stored: Option<PendingPause> =
+            env.storage().persistent().get(&StorageKey::PendingPause);
         assert_eq!(stored, Some(proposal));
     });
 }
@@ -797,7 +779,8 @@ fn legacy_pending_pause_executes_within_grace_period() {
     });
 
     // Execution right at the grace deadline boundary succeeds.
-    env.ledger().set_timestamp(execute_after + PROPOSAL_GRACE_SECONDS);
+    env.ledger()
+        .set_timestamp(execute_after + PROPOSAL_GRACE_SECONDS);
     client.execute_pause(&admin);
     assert!(client.is_paused());
     assert!(client.get_pending_pause().is_none());
@@ -821,7 +804,8 @@ fn legacy_pending_pause_fails_after_migrated_expiry() {
     });
 
     // 1 second past migrated expiry rejects with ProposalExpired.
-    env.ledger().set_timestamp(execute_after + PROPOSAL_GRACE_SECONDS + 1);
+    env.ledger()
+        .set_timestamp(execute_after + PROPOSAL_GRACE_SECONDS + 1);
     let res = client.try_execute_pause(&admin);
     assert_eq!(res.unwrap_err().unwrap(), VaultError::ProposalExpired);
     assert!(!client.is_paused());
@@ -846,14 +830,17 @@ fn legacy_pending_upgrade_migrates_and_exposes_expiry() {
         );
     });
 
-    let proposal = client.get_pending_upgrade().expect("expected migrated upgrade proposal");
+    let proposal = client
+        .get_pending_upgrade()
+        .expect("expected migrated upgrade proposal");
     assert_eq!(proposal.wasm_hash, hash);
     assert_eq!(proposal.proposed_at, proposed_at);
     assert_eq!(proposal.execute_after, execute_after);
     assert_eq!(proposal.expires_at, execute_after + PROPOSAL_GRACE_SECONDS);
 
     env.as_contract(&vault_addr, || {
-        let stored: Option<PendingUpgrade> = env.storage().persistent().get(&StorageKey::PendingUpgrade);
+        let stored: Option<PendingUpgrade> =
+            env.storage().persistent().get(&StorageKey::PendingUpgrade);
         assert_eq!(stored, Some(proposal));
     });
 }
@@ -862,7 +849,9 @@ fn legacy_pending_upgrade_migrates_and_exposes_expiry() {
 fn legacy_pending_upgrade_executes_within_grace_period() {
     let env = Env::default();
     let (_, client, admin, _, vault_addr) = setup(&env);
-    let hash = env.deployer().upload_contract_wasm(soroban_sdk::Bytes::new(&env));
+    let hash = env
+        .deployer()
+        .upload_contract_wasm(soroban_sdk::Bytes::new(&env));
     let proposed_at = 1_700_000_000;
     let execute_after = proposed_at + DEFAULT_TIMELOCK_SECONDS;
 
@@ -877,7 +866,8 @@ fn legacy_pending_upgrade_executes_within_grace_period() {
         );
     });
 
-    env.ledger().set_timestamp(execute_after + PROPOSAL_GRACE_SECONDS);
+    env.ledger()
+        .set_timestamp(execute_after + PROPOSAL_GRACE_SECONDS);
     client.execute_upgrade(&admin);
     assert_eq!(client.get_version(), Some(hash));
     assert!(client.get_pending_upgrade().is_none());
@@ -887,7 +877,9 @@ fn legacy_pending_upgrade_executes_within_grace_period() {
 fn legacy_pending_upgrade_fails_after_migrated_expiry() {
     let env = Env::default();
     let (_, client, admin, _, vault_addr) = setup(&env);
-    let hash = env.deployer().upload_contract_wasm(soroban_sdk::Bytes::new(&env));
+    let hash = env
+        .deployer()
+        .upload_contract_wasm(soroban_sdk::Bytes::new(&env));
     let proposed_at = 1_700_000_000;
     let execute_after = proposed_at + DEFAULT_TIMELOCK_SECONDS;
 
@@ -902,7 +894,8 @@ fn legacy_pending_upgrade_fails_after_migrated_expiry() {
         );
     });
 
-    env.ledger().set_timestamp(execute_after + PROPOSAL_GRACE_SECONDS + 1);
+    env.ledger()
+        .set_timestamp(execute_after + PROPOSAL_GRACE_SECONDS + 1);
     let res = client.try_execute_upgrade(&admin);
     assert_eq!(res.unwrap_err().unwrap(), VaultError::ProposalExpired);
     assert_eq!(client.get_version(), None);
@@ -927,7 +920,9 @@ fn legacy_pending_sweep_migrates_and_exposes_expiry() {
         );
     });
 
-    let proposal = client.get_pending_sweep().expect("expected migrated sweep proposal");
+    let proposal = client
+        .get_pending_sweep()
+        .expect("expected migrated sweep proposal");
     assert_eq!(proposal.to, recipient);
     assert_eq!(proposal.amount, 350);
     assert_eq!(proposal.proposed_at, proposed_at);
@@ -935,7 +930,8 @@ fn legacy_pending_sweep_migrates_and_exposes_expiry() {
     assert_eq!(proposal.expires_at, execute_after + PROPOSAL_GRACE_SECONDS);
 
     env.as_contract(&vault_addr, || {
-        let stored: Option<PendingSweep> = env.storage().persistent().get(&StorageKey::PendingSweep);
+        let stored: Option<PendingSweep> =
+            env.storage().persistent().get(&StorageKey::PendingSweep);
         assert_eq!(stored, Some(proposal));
     });
 }
@@ -963,7 +959,8 @@ fn legacy_pending_sweep_executes_within_grace_period() {
         );
     });
 
-    env.ledger().set_timestamp(execute_after + PROPOSAL_GRACE_SECONDS);
+    env.ledger()
+        .set_timestamp(execute_after + PROPOSAL_GRACE_SECONDS);
     client.execute_sweep(&admin);
     assert!(client.get_pending_sweep().is_none());
     let bal = token::Client::new(&env, &usdc).balance(&recipient);
@@ -993,7 +990,8 @@ fn legacy_pending_sweep_fails_after_migrated_expiry() {
         );
     });
 
-    env.ledger().set_timestamp(execute_after + PROPOSAL_GRACE_SECONDS + 1);
+    env.ledger()
+        .set_timestamp(execute_after + PROPOSAL_GRACE_SECONDS + 1);
     let res = client.try_execute_sweep(&admin);
     assert_eq!(res.unwrap_err().unwrap(), VaultError::ProposalExpired);
     let bal = token::Client::new(&env, &usdc).balance(&recipient);

@@ -20,8 +20,6 @@
 //! - Settlement: 20+ entrypoints
 //! - Revenue Pool: 15+ entrypoints
 
-#![no_std]
-
 extern crate std;
 
 use soroban_sdk::token as soroban_token;
@@ -98,10 +96,10 @@ fn setup<'a>(env: &'a Env) -> TestContext<'a> {
     let outsider = Address::generate(&env);
     let pending_admin = Address::generate(&env);
 
-    let (vault_addr, vault) = create_vault(env_ref);
-    let (settlement_addr, settlement) = create_settlement(env_ref);
-    let (revenue_pool_addr, revenue_pool) = create_revenue_pool(env_ref);
-    let (usdc_addr, usdc, usdc_admin) = create_usdc(env_ref, &admin);
+    let (vault_addr, vault) = create_vault(env);
+    let (settlement_addr, settlement) = create_settlement(env);
+    let (revenue_pool_addr, revenue_pool) = create_revenue_pool(env);
+    let (usdc_addr, usdc, usdc_admin) = create_usdc(env, &admin);
 
     // Fund vault on-ledger
     usdc_admin.mint(&vault_addr, &1_000_000_000);
@@ -110,12 +108,12 @@ fn setup<'a>(env: &'a Env) -> TestContext<'a> {
     vault.init(
         &owner,
         &usdc_addr,
-        &1_000_000,
-        &authorized_caller,
-        &1,
+        &Some(1_000_000),
+        &Some(authorized_caller.clone()),
+        &Some(1),
         &Some(revenue_pool_addr.clone()),
-        &100_000_000,
-        &settlement_addr,
+        &Some(100_000_000),
+        &Some(settlement_addr.clone()),
     );
 
     // Init settlement
@@ -272,7 +270,9 @@ mod vault_access_control {
         env.mock_all_auths();
         let ctx = setup(&env);
         let new_caller = Address::generate(&ctx.env);
-        let result = ctx.vault.try_set_authorized_caller(&ctx.owner, &new_caller);
+        let result = ctx
+            .vault
+            .try_set_authorized_caller(&Some(new_caller), &0u64);
         assert!(result.is_ok());
     }
 
@@ -281,10 +281,11 @@ mod vault_access_control {
         let env = Env::default();
         env.mock_all_auths();
         let ctx = setup(&env);
+        ctx.env.set_auths(&[]);
         let new_caller = Address::generate(&ctx.env);
         let result = ctx
             .vault
-            .try_set_authorized_caller(&ctx.outsider, &new_caller);
+            .try_set_authorized_caller(&Some(new_caller), &0u64);
         assert!(
             result.is_err(),
             "outsider should not be able to set_authorized_caller"
@@ -764,7 +765,10 @@ mod settlement_access_control {
         let new_vault = Address::generate(&ctx.env);
         ctx.settlement.propose_vault(&ctx.admin, &new_vault);
         let result = ctx.settlement.try_accept_vault(&ctx.admin);
-        assert!(result.is_err(), "admin must not be able to accept a vault rotation (#1141)");
+        assert!(
+            result.is_err(),
+            "admin must not be able to accept a vault rotation (#1141)"
+        );
     }
 
     #[test]

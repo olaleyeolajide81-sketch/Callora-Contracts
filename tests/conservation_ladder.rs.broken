@@ -200,11 +200,7 @@ fn run_trace(seed: u64) {
             2 => {
                 let a1 = rng.amount(AMOUNT_CAP / 2);
                 let a2 = rng.amount(AMOUNT_CAP / 2);
-                let items = soroban_sdk::vec![
-                    &env,
-                    (a1, 0u64),
-                    (a2, 0u64),
-                ];
+                let items = soroban_sdk::vec![&env, (a1, 0u64), (a2, 0u64),];
                 let batch_total = a1 + a2;
                 let _ = h.vault.try_batch_deduct(&h.backend, &items);
                 // Credit settlement's internal accounting for the batch total.
@@ -222,9 +218,7 @@ fn run_trace(seed: u64) {
                 let bal = h.settlement.get_developer_balance(&dev, &h.usdc_id);
                 if bal > 0 {
                     let w = amount.min(bal);
-                    let _ =
-                        h.settlement
-                            .try_withdraw_developer_balance(&dev, &w, &None);
+                    let _ = h.settlement.try_withdraw_developer_balance(&dev, &w, &None);
                     cumulative_withdrawn += w;
                     trace.push(step, std::format!("dev_withdraw {w}"));
                 } else {

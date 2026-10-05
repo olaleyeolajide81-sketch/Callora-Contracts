@@ -125,7 +125,10 @@ mod tests {
     #[test]
     fn test_event_signer_rotated_bytes() {
         let env = Env::default();
-        assert_eq!(event_signer_rotated(&env), Symbol::new(&env, "signer_rotated"));
+        assert_eq!(
+            event_signer_rotated(&env),
+            Symbol::new(&env, "signer_rotated")
+        );
     }
 
     /// Snapshot: proves event_admin_nominated still maps to exactly the bytes for "admin_nominated".

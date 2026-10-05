@@ -1,5 +1,5 @@
 use crate::{CalloraSettlement, CalloraSettlementClient, SettlementError};
-use soroban_sdk::testutils::Address as _;
+use soroban_sdk::testutils::{Address as _, Ledger as _};
 use soroban_sdk::{Address, Env, Error, InvokeError};
 
 fn is_not_initialized<V, CE: Into<Error>, E: Into<Error>>(

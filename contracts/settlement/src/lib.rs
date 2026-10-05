@@ -335,6 +335,7 @@ impl CalloraSettlement {
                 .unwrap_or_else(|e| env.panic_with_error(e));
         }
 
+        let mut batch_total: i128 = 0;
         for item in items.iter() {
             let (dev, amount) = item;
             let balance_key = StorageKey::DeveloperBalance(dev.clone(), token.clone());
@@ -378,6 +379,7 @@ impl CalloraSettlement {
 
         // Reconcile TotalReceived: batch developer credit path.
         // Written once after the loop to avoid redundant storage reads/writes.
+        let inst = env.storage().instance();
         let total_received = inst.get::<_, i128>(&StorageKey::TotalReceived).unwrap_or(0);
         let new_total_received = total_received
             .checked_add(batch_total)
@@ -1673,7 +1675,7 @@ impl CalloraSettlement {
     pub fn batch_settle(
         env: Env,
         settlements: soroban_sdk::Vec<batch::SettleInput>,
-    ) -> soroban_sdk::Vec<batch::SettleOutcome> {
+    ) -> Result<soroban_sdk::Vec<batch::SettleOutcome>, SettlementError> {
         batch::batch_settle(&env, settlements)
     }
 
@@ -1816,7 +1818,11 @@ impl CalloraSettlement {
             .unwrap_or(0u32);
 
         // Load the last page (or create the first one).
-        let last_page_idx = if page_count == 0 { 0u32 } else { page_count - 1 };
+        let last_page_idx = if page_count == 0 {
+            0u32
+        } else {
+            page_count - 1
+        };
         let last_page_key = StorageKey::IndexPage(last_page_idx);
         let mut page: Vec<Address> = env
             .storage()
@@ -1898,14 +1904,14 @@ mod test_freeze;
 #[cfg(test)]
 mod test_reentrancy;
 
-/// #1135: cursor-based batch developer withdrawals.
-#[cfg(test)]
-mod test_batch_withdraw;
 #[cfg(test)]
 // Legacy suites targeting the pre-nonce payment API are intentionally not
 // compiled; current authorization behavior is covered by contracts/tests.
 #[cfg(test)]
 mod test_admin_migration;
+/// #1135: cursor-based batch developer withdrawals.
+#[cfg(test)]
+mod test_batch_withdraw;
 #[cfg(test)]
 mod test_error_codes;
 #[cfg(test)]

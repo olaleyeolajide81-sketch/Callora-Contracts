@@ -176,7 +176,11 @@ fn accept_vault_only_pending_vault_can_accept() {
 
     // Pending vault accepts — this must succeed.
     client.accept_vault(&new_vault);
-    assert_eq!(client.get_vault(), new_vault, "vault must be updated to the new address");
+    assert_eq!(
+        client.get_vault(),
+        new_vault,
+        "vault must be updated to the new address"
+    );
 }
 
 #[test]

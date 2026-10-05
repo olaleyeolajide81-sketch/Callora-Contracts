@@ -359,10 +359,8 @@ pub fn migrate_index_to_pages(
     // Empty old index — remove and mark done immediately.
     if total == 0 {
         inst.remove(&StorageKey::DeveloperIndex);
-        env.events().publish(
-            (Symbol::new(env, "mig_idx_pages_done"),),
-            0u32,
-        );
+        env.events()
+            .publish((Symbol::new(env, "mig_idx_pages_done"),), 0u32);
         return (0, true);
     }
 
@@ -387,10 +385,8 @@ pub fn migrate_index_to_pages(
     let done = end >= total;
     if done {
         inst.remove(&StorageKey::DeveloperIndex);
-        env.events().publish(
-            (Symbol::new(env, "mig_idx_pages_done"),),
-            total,
-        );
+        env.events()
+            .publish((Symbol::new(env, "mig_idx_pages_done"),), total);
     }
 
     (end, done)

@@ -131,9 +131,7 @@ impl RefundContract {
             .instance()
             .get(&StorageKey::RefundCounter)
             .unwrap_or(0);
-        let request_id = counter
-            .checked_add(1)
-            .ok_or(RefundError::Overflow)?;
+        let request_id = counter.checked_add(1).ok_or(RefundError::Overflow)?;
 
         let request = RefundRequest {
             id: request_id,
@@ -148,9 +146,11 @@ impl RefundContract {
 
         let key = StorageKey::PendingRefund(request_id);
         env.storage().persistent().set(&key, &request);
-        env.storage()
-            .persistent()
-            .extend_ttl(&key, PERSISTENT_BUMP_THRESHOLD, PERSISTENT_BUMP_AMOUNT);
+        env.storage().persistent().extend_ttl(
+            &key,
+            PERSISTENT_BUMP_THRESHOLD,
+            PERSISTENT_BUMP_AMOUNT,
+        );
 
         let requester_key = StorageKey::RequesterRefunds(requester.clone());
         let mut requester_refunds: soroban_sdk::Vec<u64> = env
@@ -162,7 +162,9 @@ impl RefundContract {
             requester_refunds.remove(0);
         }
         requester_refunds.push_back(request_id);
-        env.storage().persistent().set(&requester_key, &requester_refunds);
+        env.storage()
+            .persistent()
+            .set(&requester_key, &requester_refunds);
         env.storage().persistent().extend_ttl(
             &requester_key,
             PERSISTENT_BUMP_THRESHOLD,
@@ -189,11 +191,7 @@ impl RefundContract {
     /// * `Unauthorized` - Caller is not the admin.
     /// * `NotFound` - Refund request not found.
     /// * `InvalidStatus` - Request is not in Pending status.
-    pub fn approve_refund(
-        env: Env,
-        admin: Address,
-        request_id: u64,
-    ) -> Result<(), RefundError> {
+    pub fn approve_refund(env: Env, admin: Address, request_id: u64) -> Result<(), RefundError> {
         admin.require_auth();
         Self::ensure_initialized(&env)?;
         Self::bump_instance_ttl(&env);
@@ -216,9 +214,11 @@ impl RefundContract {
 
         request.status = RefundStatus::Approved;
         env.storage().persistent().set(&key, &request);
-        env.storage()
-            .persistent()
-            .extend_ttl(&key, PERSISTENT_BUMP_THRESHOLD, PERSISTENT_BUMP_AMOUNT);
+        env.storage().persistent().extend_ttl(
+            &key,
+            PERSISTENT_BUMP_THRESHOLD,
+            PERSISTENT_BUMP_AMOUNT,
+        );
 
         Self::emit_refund_processed(
             &env,
@@ -242,11 +242,7 @@ impl RefundContract {
     /// * `Unauthorized` - Caller is not the admin.
     /// * `NotFound` - Refund request not found.
     /// * `InvalidStatus` - Request is not in Pending status.
-    pub fn reject_refund(
-        env: Env,
-        admin: Address,
-        request_id: u64,
-    ) -> Result<(), RefundError> {
+    pub fn reject_refund(env: Env, admin: Address, request_id: u64) -> Result<(), RefundError> {
         admin.require_auth();
         Self::ensure_initialized(&env)?;
         Self::bump_instance_ttl(&env);
@@ -270,9 +266,11 @@ impl RefundContract {
         request.status = RefundStatus::Rejected;
         request.processed_at = Some(env.ledger().timestamp());
         env.storage().persistent().set(&key, &request);
-        env.storage()
-            .persistent()
-            .extend_ttl(&key, PERSISTENT_BUMP_THRESHOLD, PERSISTENT_BUMP_AMOUNT);
+        env.storage().persistent().extend_ttl(
+            &key,
+            PERSISTENT_BUMP_THRESHOLD,
+            PERSISTENT_BUMP_AMOUNT,
+        );
 
         Self::emit_refund_processed(
             &env,
@@ -299,11 +297,7 @@ impl RefundContract {
     /// * `NotFound` - Refund request not found.
     /// * `InvalidStatus` - Request is not in Approved status.
     /// * `Overflow` - Total refunds counter would overflow.
-    pub fn process_refund(
-        env: Env,
-        admin: Address,
-        request_id: u64,
-    ) -> Result<(), RefundError> {
+    pub fn process_refund(env: Env, admin: Address, request_id: u64) -> Result<(), RefundError> {
         admin.require_auth();
         Self::ensure_initialized(&env)?;
         Self::bump_instance_ttl(&env);
@@ -327,9 +321,11 @@ impl RefundContract {
         request.status = RefundStatus::Processed;
         request.processed_at = Some(env.ledger().timestamp());
         env.storage().persistent().set(&key, &request);
-        env.storage()
-            .persistent()
-            .extend_ttl(&key, PERSISTENT_BUMP_THRESHOLD, PERSISTENT_BUMP_AMOUNT);
+        env.storage().persistent().extend_ttl(
+            &key,
+            PERSISTENT_BUMP_THRESHOLD,
+            PERSISTENT_BUMP_AMOUNT,
+        );
 
         let total: i128 = env
             .storage()
@@ -422,17 +418,16 @@ impl RefundContract {
     /// Get a refund request by ID.
     ///
     /// Bumps instance and persistent storage TTL on read to prevent premature archival.
-    pub fn get_refund_request(
-        env: Env,
-        request_id: u64,
-    ) -> Result<RefundRequest, RefundError> {
+    pub fn get_refund_request(env: Env, request_id: u64) -> Result<RefundRequest, RefundError> {
         Self::bump_instance_ttl(&env);
 
         let key = StorageKey::PendingRefund(request_id);
         if env.storage().persistent().has(&key) {
-            env.storage()
-                .persistent()
-                .extend_ttl(&key, PERSISTENT_BUMP_THRESHOLD, PERSISTENT_BUMP_AMOUNT);
+            env.storage().persistent().extend_ttl(
+                &key,
+                PERSISTENT_BUMP_THRESHOLD,
+                PERSISTENT_BUMP_AMOUNT,
+            );
         }
         env.storage()
             .persistent()
@@ -497,9 +492,7 @@ impl RefundContract {
 
         let effective_limit = limit.min(MAX_REQUESTER_REFUNDS_PAGE_SIZE);
         let mut page = soroban_sdk::Vec::new(&env);
-        let end = start
-            .saturating_add(effective_limit)
-            .min(index.len());
+        let end = start.saturating_add(effective_limit).min(index.len());
         for offset in start..end {
             let request_id = index.get(offset).unwrap();
             let key = StorageKey::PendingRefund(request_id);

@@ -248,8 +248,7 @@ fn test_rotate_signer_emits_old_and_new_signer() {
     let (_, topics, data) = events.last().unwrap();
     let topic: Symbol = topics.get(0).unwrap().try_into_val(&env).unwrap();
     assert_eq!(topic, Symbol::new(&env, "signer_rotated"));
-    let (emitted_old, emitted_new): (Address, Address) =
-        data.try_into_val(&env).unwrap();
+    let (emitted_old, emitted_new): (Address, Address) = data.try_into_val(&env).unwrap();
     assert_eq!(emitted_old, old_signer);
     assert_eq!(emitted_new, new_signer);
 }
@@ -263,8 +262,7 @@ fn test_rotate_signer_event_payload_matches_storage() {
 
     let events = env.events().all();
     let (_, _, data) = events.last().unwrap();
-    let (emitted_old, emitted_new): (Address, Address) =
-        data.try_into_val(&env).unwrap();
+    let (emitted_old, emitted_new): (Address, Address) = data.try_into_val(&env).unwrap();
     assert_eq!(emitted_old, old_signer);
     assert_eq!(emitted_new, client.get_signer());
 }

@@ -132,12 +132,12 @@ pub fn setup<'a>(env: &Env) -> Harness<'a> {
     vault.init(
         &owner,
         &usdc_id,
-        &0i128,                            // initial_balance
-        &backend.clone(),                   // authorized_caller
-        &1i128,                             // min_deposit
-        &Some(revenue_pool_id.clone()),     // revenue_pool
-        &i128::MAX,                         // max_deduct
-        &settlement_id,                     // settlement
+        &Some(0i128),                   // initial_balance
+        &Some(backend.clone()),         // authorized_caller
+        &Some(1i128),                   // min_deposit
+        &Some(revenue_pool_id.clone()), // revenue_pool
+        &Some(i128::MAX),               // max_deduct
+        &Some(settlement_id.clone()),   // settlement
     );
 
     // ---- Initialize settlement ---------------------------------------------

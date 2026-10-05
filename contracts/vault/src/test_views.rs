@@ -174,7 +174,10 @@ fn set_max_deduct_rejects_non_positive_values() {
     let zero = client.try_set_max_deduct(&owner, &0);
     assert!(matches!(zero, Err(Ok(VaultError::MaxDeductNotPositive))));
     let negative = client.try_set_max_deduct(&owner, &-1);
-    assert!(matches!(negative, Err(Ok(VaultError::MaxDeductNotPositive))));
+    assert!(matches!(
+        negative,
+        Err(Ok(VaultError::MaxDeductNotPositive))
+    ));
     // The stored value is unchanged after the rejected calls.
     assert_eq!(client.get_max_deduct(), 10_000_000_000);
 }

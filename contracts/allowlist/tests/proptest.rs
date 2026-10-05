@@ -204,6 +204,7 @@ fn run_property_trace(seed: u64) {
         &Some(1),
         &None,
         &Some(10_000),
+        &None,
     );
 
     // Fund all participants and approve vault.
@@ -232,7 +233,7 @@ fn run_property_trace(seed: u64) {
                 }
 
                 assert!(
-                    client.is_authorized_depositor(addr.clone()),
+                    client.is_authorized_depositor(&addr),
                     "just-added address must be authorized"
                 );
 
@@ -265,12 +266,12 @@ fn run_property_trace(seed: u64) {
 
                 for addr in &pool {
                     assert!(
-                        !client.is_authorized_depositor(addr.clone()),
+                        !client.is_authorized_depositor(addr),
                         "after clear, no pool address is authorized"
                     );
                 }
                 assert!(
-                    client.is_authorized_depositor(owner.clone()),
+                    client.is_authorized_depositor(&owner),
                     "owner must always be authorized"
                 );
 
@@ -288,7 +289,7 @@ fn run_property_trace(seed: u64) {
                     let idx = rng.gen_range_usize(0, pool.len());
                     let addr = pool[idx].clone();
                     assert!(
-                        !client.is_authorized_depositor(addr.clone()),
+                        !client.is_authorized_depositor(&addr),
                         "non-allowed depositor must NOT be authorized"
                     );
                     trace.push(
@@ -300,14 +301,14 @@ fn run_property_trace(seed: u64) {
                     let idx = rng.gen_range_usize(0, allowed.len());
                     let addr = allowed[idx].clone();
                     assert!(
-                        client.is_authorized_depositor(addr.clone()),
+                        client.is_authorized_depositor(&addr),
                         "allowed depositor must be authorized"
                     );
                     trace.push(step, "assert_member", std::format!("addr={addr:?}"));
                 }
 
                 assert!(
-                    client.is_authorized_depositor(owner.clone()),
+                    client.is_authorized_depositor(&owner),
                     "owner must always be authorized"
                 );
 
@@ -317,7 +318,7 @@ fn run_property_trace(seed: u64) {
                     .collect();
                 if let Some(na) = non_allowed.first() {
                     assert!(
-                        !client.is_authorized_depositor((*na).clone()),
+                        !client.is_authorized_depositor(*na),
                         "non-allowed depositor must NOT be authorized"
                     );
                 }
@@ -393,7 +394,7 @@ fn run_property_trace(seed: u64) {
         ));
     }
     for addr in &allowed {
-        let auth = client.is_authorized_depositor(addr.clone());
+        let auth = client.is_authorized_depositor(addr);
         if !auth {
             trace.panic_msg(std::format!(
                 "final: allowed addr {addr:?} is not authorized"
@@ -435,6 +436,7 @@ fn test_whitelist_empty_list_allows_all() {
         &Some(1),
         &None,
         &Some(1_000),
+        &None,
     );
     usdc_admin.mint(&depositor, &1_000);
     usdc_client.approve(&depositor, &vault_addr, &i128::MAX, &999_999);
@@ -467,6 +469,7 @@ fn test_whitelist_clear_idempotent() {
         &Some(1),
         &None,
         &Some(1_000),
+        &None,
     );
 
     client.clear_allowed_depositors(&owner);

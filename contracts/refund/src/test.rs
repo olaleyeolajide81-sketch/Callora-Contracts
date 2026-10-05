@@ -45,7 +45,10 @@ fn test_init_already_initialized() {
 
     client.init(&admin, &250, &100);
     let result = client.try_init(&admin, &250, &100);
-    assert_eq!(result.unwrap_err().unwrap(), RefundError::AlreadyInitialized);
+    assert_eq!(
+        result.unwrap_err().unwrap(),
+        RefundError::AlreadyInitialized
+    );
 }
 
 #[test]
@@ -122,7 +125,10 @@ fn test_requester_refund_index_is_bounded() {
 
     let oversized_limit = MAX_REQUESTER_REFUNDS + 1;
     let page = client.get_refunds_by_requester(&requester, &0, &oversized_limit);
-    assert_eq!(page.len(), MAX_REQUESTER_REFUNDS.min(crate::MAX_REQUESTER_REFUNDS_PAGE_SIZE));
+    assert_eq!(
+        page.len(),
+        MAX_REQUESTER_REFUNDS.min(crate::MAX_REQUESTER_REFUNDS_PAGE_SIZE)
+    );
     assert_eq!(page.get(0).unwrap(), 2);
 }
 

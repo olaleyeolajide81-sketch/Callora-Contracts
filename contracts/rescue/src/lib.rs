@@ -563,7 +563,7 @@ mod test_events {
 
         let to = Address::generate(&env);
         let amount: i128 = 500;
-        let token_addr = create_token(&env, &admin, &cid, &amount);
+        let token_addr = create_token(&env, &admin, &cid, amount);
 
         // Clear init event.
         env.events().all();
@@ -613,7 +613,7 @@ mod test_events {
         let to = Address::generate(&env);
         let amount: i128 = 500;
         let cap: i128 = 1000;
-        let token_addr = create_token(&env, &admin, &cid, &amount);
+        let token_addr = create_token(&env, &admin, &cid, amount);
 
         env.events().all();
 
@@ -654,7 +654,7 @@ mod test_events {
         c.init(&admin);
 
         let to = Address::generate(&env);
-        let token_addr = create_token(&env, &admin, &cid, &1000);
+        let token_addr = create_token(&env, &admin, &cid, 1000);
 
         env.events().all();
 
@@ -733,7 +733,7 @@ mod test_events {
 
         c.init(&admin);
 
-        let token_addr = create_token(&env, &admin, &cid, &500);
+        let token_addr = create_token(&env, &admin, &cid, 500);
         let to = Address::generate(&env);
 
         // Clear init event.

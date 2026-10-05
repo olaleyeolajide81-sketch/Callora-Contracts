@@ -250,9 +250,8 @@ fn list_recipients_single_page() {
     assert_eq!(page.len(), 3);
 
     // All registered names must appear somewhere in the page.
-    let contains = |needle: &SorobanString| {
-        (0..page.len()).any(|i| page.get(i).unwrap() == *needle)
-    };
+    let contains =
+        |needle: &SorobanString| (0..page.len()).any(|i| page.get(i).unwrap() == *needle);
     assert!(contains(&n_a), "alpha missing");
     assert!(contains(&n_b), "beta missing");
     assert!(contains(&n_c), "gamma missing");

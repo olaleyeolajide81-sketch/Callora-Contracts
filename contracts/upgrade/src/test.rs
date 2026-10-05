@@ -6,7 +6,9 @@
 //! - event emission: `cooldown_set`, `upgrade_started`, `upgrade_recorded`
 #![cfg(test)]
 extern crate std;
-use crate::admin::{check_and_record_upgrade, get_cooldown, set_cooldown, DEFAULT_COOLDOWN_SECONDS};
+use crate::admin::{
+    check_and_record_upgrade, get_cooldown, set_cooldown, DEFAULT_COOLDOWN_SECONDS,
+};
 use crate::errors::UpgradeError;
 use soroban_sdk::{
     testutils::{Address as _, Events as _, Ledger as _},
@@ -22,10 +24,7 @@ use soroban_sdk::{
 fn events_with_topic<'a>(
     env: &'a Env,
     topic: &str,
-) -> std::vec::Vec<(
-    soroban_sdk::Vec<soroban_sdk::Val>,
-    soroban_sdk::Val,
-)> {
+) -> std::vec::Vec<(soroban_sdk::Vec<soroban_sdk::Val>, soroban_sdk::Val)> {
     let needle = Symbol::new(env, topic);
     env.events()
         .all()
@@ -197,7 +196,11 @@ fn check_and_record_upgrade_first_call_emits_started_and_recorded() {
 
     // ── upgrade_started ──────────────────────────────────────────────────
     let started = events_with_topic(&env, "upgrade_started");
-    assert_eq!(started.len(), 1, "expected exactly one upgrade_started event");
+    assert_eq!(
+        started.len(),
+        1,
+        "expected exactly one upgrade_started event"
+    );
 
     let (topics_s, data_s) = &started[0];
     assert_eq!(topics_s.len(), 2);
@@ -209,8 +212,7 @@ fn check_and_record_upgrade_first_call_emits_started_and_recorded() {
     let (ts, cooldown): (u64, u64) = data_s.into_val(&env);
     assert_eq!(ts, 500, "upgrade_started data[0] must be current_timestamp");
     assert_eq!(
-        cooldown,
-        DEFAULT_COOLDOWN_SECONDS,
+        cooldown, DEFAULT_COOLDOWN_SECONDS,
         "upgrade_started data[1] must be the cooldown window"
     );
 

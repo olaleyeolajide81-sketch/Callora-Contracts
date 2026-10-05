@@ -14,4 +14,5 @@ fn test_checkpoint_error_stability() {
     assert_eq!(CheckpointError::AmountNegative as u32, 7);
     assert_eq!(CheckpointError::InvalidPageSize as u32, 8);
     assert_eq!(CheckpointError::Overflow as u32, 9);
+    assert_eq!(CheckpointError::NoAdminTransferPending as u32, 10);
 }

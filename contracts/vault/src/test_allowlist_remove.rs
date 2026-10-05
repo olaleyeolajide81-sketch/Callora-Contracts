@@ -183,7 +183,11 @@ fn remove_address_emits_allowlist_remove_event_with_correct_topics() {
         .filter(|(addr, _, _)| addr == &vault)
         .collect();
 
-    assert_eq!(vault_evts.len(), 1, "exactly one vault event must be emitted");
+    assert_eq!(
+        vault_evts.len(),
+        1,
+        "exactly one vault event must be emitted"
+    );
 
     let (_, topics, data) = &vault_evts[0];
 
@@ -256,7 +260,7 @@ fn remove_then_re_add_works() {
 
     // Must be present in the list exactly once.
     let list = client.get_allowlist();
-    let count = list.iter().filter(|a| a == depositor).count();
+    let count = list.iter().filter(|a| *a == depositor).count();
     assert_eq!(count, 1, "address must appear exactly once after re-add");
 
     // Must be able to deposit again.

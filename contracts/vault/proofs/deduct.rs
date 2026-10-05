@@ -102,13 +102,25 @@ fn model_successful_batch_deduct(
     request_id2: u64,
     max_deduct: i128,
 ) -> DeductState {
-    assert!(state.vault_balance >= 0, "vault balance must be non-negative");
-    assert!(state.settlement_credit >= 0, "settlement credit must be non-negative");
+    assert!(
+        state.vault_balance >= 0,
+        "vault balance must be non-negative"
+    );
+    assert!(
+        state.settlement_credit >= 0,
+        "settlement credit must be non-negative"
+    );
     assert!(max_deduct > 0, "max_deduct must be positive");
 
     // Validation pass — mirrors the contract's loop before any mutation.
-    assert!(amount1 > 0 && amount1 <= max_deduct, "item 1: invalid deduct amount");
-    assert!(amount2 > 0 && amount2 <= max_deduct, "item 2: invalid deduct amount");
+    assert!(
+        amount1 > 0 && amount1 <= max_deduct,
+        "item 1: invalid deduct amount"
+    );
+    assert!(
+        amount2 > 0 && amount2 <= max_deduct,
+        "item 2: invalid deduct amount"
+    );
 
     // Running-total accumulation — mirrors: total_amount = total_amount.checked_add(amount).unwrap()
     let total = amount1
@@ -213,19 +225,20 @@ fn kani_deduct_request_id_conserves_total_supply() {
     kani::assume(vault_balance <= i128::MAX - settlement_credit);
     kani::assume(settlement_credit <= i128::MAX - amount);
 
-    let before = DeductState { vault_balance, settlement_credit };
+    let before = DeductState {
+        vault_balance,
+        settlement_credit,
+    };
 
     let after_a = model_successful_deduct(before, amount, max_deduct, request_id_a);
     let after_b = model_successful_deduct(before, amount, max_deduct, request_id_b);
 
     assert_eq!(
-        after_a.vault_balance,
-        after_b.vault_balance,
+        after_a.vault_balance, after_b.vault_balance,
         "vault balance must not depend on request_id"
     );
     assert_eq!(
-        after_a.settlement_credit,
-        after_b.settlement_credit,
+        after_a.settlement_credit, after_b.settlement_credit,
         "settlement credit must not depend on request_id"
     );
     assert_eq!(
@@ -260,11 +273,19 @@ fn kani_batch_deduct_conserves_total_supply() {
     kani::assume(vault_balance <= i128::MAX - settlement_credit);
     kani::assume(settlement_credit <= i128::MAX - total);
 
-    let before = DeductState { vault_balance, settlement_credit };
+    let before = DeductState {
+        vault_balance,
+        settlement_credit,
+    };
     let before_total = before.total_supply();
 
     let after = model_successful_batch_deduct(
-        before, amount1, request_id1, amount2, request_id2, max_deduct,
+        before,
+        amount1,
+        request_id1,
+        amount2,
+        request_id2,
+        max_deduct,
     );
 
     assert_eq!(

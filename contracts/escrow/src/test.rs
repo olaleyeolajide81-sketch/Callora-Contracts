@@ -6,18 +6,10 @@
 
 use crate::admin::{DEFAULT_COOLDOWN_SECS, MAX_COOLDOWN_SECS, MIN_COOLDOWN_SECS};
 use crate::{
-    CalloraEscrow, CalloraEscrowClient, EscrowError, ACTION_RELEASE, ACTION_ROTATE,
-    ACTION_UNPAUSE,
+    CalloraEscrow, CalloraEscrowClient, EscrowError, ACTION_RELEASE, ACTION_ROTATE, ACTION_UNPAUSE,
 };
 use soroban_sdk::testutils::{Address as _, Events as _, Ledger as _};
 use soroban_sdk::{Address, Env, Symbol, TryIntoVal};
-
-/// Helper: read the current instance storage entry count for the contract.
-fn instance_entry_count(env: &Env, contract_id: &Address) -> u32 {
-    env.as_contract(contract_id, || {
-        env.storage().instance().len()
-    })
-}
 
 /// Helper: register a fresh escrow contract initialized with `cooldown_secs`
 /// and return `(env, admin, signer, client)`. Auth is mocked for convenience.
@@ -363,22 +355,25 @@ fn test_shorter_cooldown_takes_effect_for_next_check() {
 #[test]
 fn test_instance_footprint_independent_of_escrow_count() {
     let (env, admin, _signer, client, contract_id) = setup_with_id(Some(60));
+    let asset = Address::generate(&env);
+    client.add_approved_asset(&admin, &asset);
 
-    // Baseline instance footprint after init.
-    let baseline = instance_entry_count(&env, &contract_id);
-
-    // Create many escrow records; they must live in persistent storage and
-    // therefore must not grow the instance storage footprint.
-    for _ in 0..25 {
+    // Create escrow records; they must live in persistent storage and
+    // therefore must not be present in instance storage.
+    for _ in 0..10 {
         let recipient = Address::generate(&env);
-        client.release(&admin, &recipient);
-    }
+        client.create_escrow(&admin, &asset, &recipient, &100);
 
-    let after = instance_entry_count(&env, &contract_id);
-    assert_eq!(
-        baseline, after,
-        "instance storage must not grow with escrow count"
-    );
+        let key = crate::StorageKey::Escrow(asset.clone(), recipient.clone());
+        let in_instance = env.as_contract(&contract_id, || env.storage().instance().has(&key));
+        let in_persistent = env.as_contract(&contract_id, || env.storage().persistent().has(&key));
+
+        assert!(
+            !in_instance,
+            "escrow record must not be in instance storage"
+        );
+        assert!(in_persistent, "escrow record must be in persistent storage");
+    }
 }
 
 #[test]
@@ -387,15 +382,15 @@ fn test_approved_asset_flags_readable_after_migration() {
     let asset = Address::generate(&env);
 
     // Approve an asset, then verify the flag is readable via the view.
-    client.approve_asset(&admin, &asset);
+    client.add_approved_asset(&admin, &asset);
     assert!(client.is_asset_approved(&asset));
 
     // A second approval is idempotent and the flag remains readable.
-    client.approve_asset(&admin, &asset);
+    client.add_approved_asset(&admin, &asset);
     assert!(client.is_asset_approved(&asset));
 
     // Revoke and confirm the flag flips back.
-    client.revoke_asset(&admin, &asset);
+    client.remove_approved_asset(&admin, &asset);
     assert!(!client.is_asset_approved(&asset));
 }
 

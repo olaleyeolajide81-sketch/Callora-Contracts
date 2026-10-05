@@ -100,11 +100,7 @@ impl RegisterVariant {
                 match client.try_register_offering(admin, developer, offering_id, meta) {
                     Ok(_) => true,
                     Err(Ok(RegistryError::InvalidMetadata)) => false,
-                    other => panic!(
-                        "{}: unexpected result: {:?}",
-                        self.name(),
-                        other
-                    ),
+                    other => panic!("{}: unexpected result: {:?}", self.name(), other),
                 }
             }
             RegisterVariant::Gated => {
@@ -123,11 +119,7 @@ impl RegisterVariant {
                 ) {
                     Ok(_) => true,
                     Err(Ok(RegistryError::InvalidMetadata)) => false,
-                    other => panic!(
-                        "{}: unexpected result: {:?}",
-                        self.name(),
-                        other
-                    ),
+                    other => panic!("{}: unexpected result: {:?}", self.name(), other),
                 }
             }
         }
@@ -144,7 +136,12 @@ impl RegisterVariant {
         meta: &String,
     ) {
         let ok = self.try_register_expect_invalid_metadata_or_ok(
-            env, client, admin, developer, offering_id, meta,
+            env,
+            client,
+            admin,
+            developer,
+            offering_id,
+            meta,
         );
         assert!(ok, "{}: expected registration to succeed", self.name());
     }
@@ -195,9 +192,8 @@ fn assert_invalid_metadata(variant: &RegisterVariant, meta_str: &str, oid_suffix
     let oid = offering_id(&env, oid_suffix);
     let meta = metadata(&env, meta_str);
 
-    let accepted = variant.try_register_expect_invalid_metadata_or_ok(
-        &env, &client, &admin, &developer, &oid, &meta,
-    );
+    let accepted = variant
+        .try_register_expect_invalid_metadata_or_ok(&env, &client, &admin, &developer, &oid, &meta);
     assert!(
         !accepted,
         "{}: expected InvalidMetadata for {:?}",

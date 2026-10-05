@@ -7,10 +7,10 @@
 //! infrequent writes.
 
 use crate::{
-    RefundContract, RefundContractClient, RefundError, RefundStatus,
-    INSTANCE_BUMP_AMOUNT, INSTANCE_BUMP_THRESHOLD, PERSISTENT_BUMP_AMOUNT, PERSISTENT_BUMP_THRESHOLD,
+    RefundContract, RefundContractClient, RefundError, RefundStatus, INSTANCE_BUMP_AMOUNT,
+    INSTANCE_BUMP_THRESHOLD, PERSISTENT_BUMP_AMOUNT, PERSISTENT_BUMP_THRESHOLD,
 };
-use soroban_sdk::testutils::{Address as _, Ledger, storage::Instance, storage::Persistent};
+use soroban_sdk::testutils::{storage::Instance, storage::Persistent, Address as _, Ledger};
 use soroban_sdk::{Address, Env, Symbol};
 
 fn setup() -> (Env, Address, RefundContractClient<'static>) {

@@ -193,8 +193,12 @@ impl CalloraWhitelist {
             .instance()
             .remove(&StorageKey::WhitelistPendingAdmin);
         env.events().publish(
-            (Symbol::new(&env, "admin_accepted"), new_admin.clone()),
-            new_admin.clone(),
+            (
+                events::event_admin_accepted(&env),
+                events::event_version_v1(&env),
+                new_admin.clone(),
+            ),
+            new_admin,
         );
         Self::bump_instance_ttl(&env);
         Ok(())
@@ -229,14 +233,6 @@ impl CalloraWhitelist {
             pending,
         );
         Self::bump_instance_ttl(&env);
-        env.events().publish(
-            (
-                events::event_admin_accepted(&env),
-                events::event_version_v1(&env),
-                new_admin.clone(),
-            ),
-            new_admin,
-        );
         Ok(())
     }
 
