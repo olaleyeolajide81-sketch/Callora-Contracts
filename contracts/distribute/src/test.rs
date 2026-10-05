@@ -777,7 +777,7 @@ fn batch_distribute_total_overflow_returns_typed_error() {
     let result = client.try_batch_distribute(&admin, &payments);
     assert_eq!(
         result,
-        Err(Ok(crate::errors::DistributeError::Overflow))
+        Err(Ok(crate::errors::DistributeError::Overflow.into()))
     );
 }
 

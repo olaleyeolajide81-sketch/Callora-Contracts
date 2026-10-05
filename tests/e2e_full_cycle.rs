@@ -94,7 +94,7 @@
 mod e2e_setup;
 
 use e2e_setup::{setup, Harness, INITIAL_MINT};
-use soroban_sdk::{vec, Env, Symbol};
+use soroban_sdk::{vec, Address, Env};
 
 /// Sum of a [`Harness`]'s settlement-side holdings: the global pool plus
 /// every developer balance tracked in settlement. Pulled into a helper so
@@ -166,11 +166,7 @@ fn e2e_full_cycle() {
     // deduct it initiates.
     // ------------------------------------------------------------------
     let single_deduct_amount: i128 = 10_000_000;
-    h.vault.deduct(
-        &h.backend,
-        &single_deduct_amount,
-        &1u64,
-    );
+    h.vault.deduct(&h.backend, &single_deduct_amount, &1u64);
 
     let batch_items = vec![
         &env,
@@ -178,7 +174,7 @@ fn e2e_full_cycle() {
         (7_500_000, 3u64),
         (2_500_000, 0u64), // no idempotency tracking for this leg
     ];
-    let batch_total: i128 = batch_items.iter().map(|(a, _)| *a).sum();
+    let batch_total: i128 = batch_items.iter().map(|(a, _)| a).sum();
     h.vault.batch_deduct(&h.backend, &batch_items);
 
     let total_deducted = single_deduct_amount + batch_total;
@@ -197,11 +193,7 @@ fn e2e_full_cycle() {
 
     // Re-using a request_id must be rejected (idempotency), and must not
     // move any funds — re-assert conservation after the rejected attempt.
-    let dup_result = h.vault.try_deduct(
-        &h.backend,
-        &single_deduct_amount,
-        &1u64,
-    );
+    let dup_result = h.vault.try_deduct(&h.backend, &single_deduct_amount, &1u64);
     assert!(dup_result.is_err(), "duplicate request_id must be rejected");
     assert_eq!(h.vault.balance(), deposit_amount - total_deducted);
     assert_conserved(&h, &devs, &[h.dev_a.clone(), h.dev_b.clone()]);

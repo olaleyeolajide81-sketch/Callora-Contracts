@@ -94,12 +94,12 @@ fn setup_simulate_vault<'a>(
 ///
 /// Returns `Some(code)` when the call returned a `VaultError`, or `None` when
 /// the call succeeded.
-fn err_code_from<V>(
-    result: Result<Result<V, soroban_sdk::Error>, Result<soroban_sdk::Error, soroban_sdk::InvokeError>>,
+fn err_code_from<V, CE: Into<soroban_sdk::Error>, E: Into<soroban_sdk::Error>>(
+    result: Result<Result<V, CE>, Result<E, soroban_sdk::InvokeError>>,
 ) -> Option<u32> {
     match result {
-        Err(Ok(e)) => Some(e.get_code()),
-        Ok(Err(e)) => Some(e.get_code()),
+        Err(Ok(e)) => Some(e.into().get_code()),
+        Ok(Err(e)) => Some(e.into().get_code()),
         Ok(Ok(_)) => None,
         Err(Err(_)) => None,
     }
@@ -154,9 +154,13 @@ proptest! {
         let deduct_code = err_code_from(deduct_result);
 
         prop_assert_eq!(
-            sim_code, deduct_code,
-            "simulate_deduct and deduct returned different outcomes for \
-             amount={amount} use_auth={use_auth_caller} paused={paused} balance={balance}"
+            sim_code,
+            deduct_code,
+            "simulate_deduct and deduct returned different outcomes for amount={} use_auth={} paused={} balance={}",
+            amount,
+            use_auth_caller,
+            paused,
+            balance
         );
     }
 }
@@ -169,8 +173,7 @@ proptest! {
 #[test]
 fn simulate_deduct_below_min_matches_deduct() {
     let env = Env::default();
-    let (client, _vault, auth_caller, _usdc_admin) =
-        setup_simulate_vault(&env, 1_000, 1_000, 500);
+    let (client, _vault, auth_caller, _usdc_admin) = setup_simulate_vault(&env, 1_000, 1_000, 500);
     env.mock_all_auths();
 
     // min_deposit = 1; pass amount = 0 to trigger AmountNotPositive,
@@ -188,7 +191,7 @@ fn simulate_deduct_below_min_matches_deduct() {
             &usdc2,
             &Some(1_000i128),
             &Some(auth2.clone()),
-            &Some(10i128),       // min_deposit = 10
+            &Some(10i128), // min_deposit = 10
             &None::<Address>,
             &Some(1_000i128),
             &Some(settlement2),

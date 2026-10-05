@@ -4,11 +4,10 @@ use soroban_sdk::{testutils::Address as _, Address, BytesN, Env, Symbol, Vec};
 
 use crate::{
     capabilities::{
-        ALL_CAPABILITIES, CAP_ADMIN_BROADCAST, CAP_AUTHORIZED_CALLER, CAP_BATCH_DEDUCT,
-        CAP_DEPOSITOR_ALLOWLIST, CAP_DEDUCT, CAP_DEPOSIT, CAP_OFFERING_METADATA, CAP_PAUSE,
-        CAP_PRICE_REGISTRY, CAP_RATE_LIMIT, CAP_REQUEST_IDEMPOTENCY, CAP_REVENUE_POOL,
-        CAP_SETTLEMENT, CAP_SLIPPAGE_GUARD, CAP_TWO_STEP_ADMIN, CAP_TWO_STEP_OWNERSHIP,
-        CAP_UPGRADE, CAP_WITHDRAW,
+        ALL_CAPABILITIES, CAP_ADMIN_BROADCAST, CAP_AUTHORIZED_CALLER, CAP_BATCH_DEDUCT, CAP_DEDUCT,
+        CAP_DEPOSIT, CAP_DEPOSITOR_ALLOWLIST, CAP_OFFERING_METADATA, CAP_PAUSE, CAP_PRICE_REGISTRY,
+        CAP_RATE_LIMIT, CAP_REQUEST_IDEMPOTENCY, CAP_REVENUE_POOL, CAP_SETTLEMENT,
+        CAP_SLIPPAGE_GUARD, CAP_TWO_STEP_ADMIN, CAP_TWO_STEP_OWNERSHIP, CAP_UPGRADE, CAP_WITHDRAW,
     },
     CalloraVault, CalloraVaultClient,
 };
@@ -336,8 +335,16 @@ fn all_capabilities_bits_are_power_of_two_distinct() {
     ];
     let mut seen: u64 = 0;
     for &cap in individual {
-        assert_eq!(cap & (cap - 1), 0, "CAP constant {cap:#x} is not a power of two");
-        assert_eq!(seen & cap, 0, "CAP constant {cap:#x} overlaps with a previously seen bit");
+        assert_eq!(
+            cap & (cap - 1),
+            0,
+            "CAP constant {cap:#x} is not a power of two"
+        );
+        assert_eq!(
+            seen & cap,
+            0,
+            "CAP constant {cap:#x} overlaps with a previously seen bit"
+        );
         seen |= cap;
     }
 }
@@ -384,7 +391,7 @@ fn every_set_capability_maps_to_callable_vault_entrypoint() {
 
     // 7. CAP_REQUEST_IDEMPOTENCY (bit 8) -> is_request_processed, prune_processed_requests
     assert_ne!(caps & CAP_REQUEST_IDEMPOTENCY, 0);
-    let req_id = Symbol::new(&env, "req_1");
+    let req_id = 1u64;
     assert!(!client.is_request_processed(&req_id));
     let _ = client.prune_processed_requests(&owner, &Vec::new(&env));
 
@@ -425,11 +432,17 @@ fn every_set_capability_maps_to_callable_vault_entrypoint() {
     // add_address: entrypoint callable — depositor appears in get_allowlist().
     client.add_address(&new_owner, &depositor);
     let list = client.get_allowlist();
-    assert!(list.contains(depositor.clone()), "depositor must be in allowlist after add_address");
+    assert!(
+        list.contains(depositor.clone()),
+        "depositor must be in allowlist after add_address"
+    );
     // clear_all: entrypoint callable — allowlist is empty afterward.
     client.clear_all(&new_owner);
     let list_after = client.get_allowlist();
-    assert!(list_after.is_empty(), "allowlist must be empty after clear_all");
+    assert!(
+        list_after.is_empty(),
+        "allowlist must be empty after clear_all"
+    );
 
     // 12. CAP_UPGRADE (bit 17) -> propose_upgrade, execute_upgrade, cancel_upgrade, get_pending_upgrade
     assert_ne!(caps & CAP_UPGRADE, 0);

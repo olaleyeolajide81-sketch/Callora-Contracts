@@ -60,11 +60,17 @@ fn reactivate_flips_active_and_emits_event() {
 
     // Deactivate first.
     client.deactivate(&f.admin, &name);
-    assert!(!client.is_active(&name), "topic must be inactive after deactivate");
+    assert!(
+        !client.is_active(&name),
+        "topic must be inactive after deactivate"
+    );
 
     // Reactivate.
     client.reactivate(&f.admin, &name);
-    assert!(client.is_active(&name), "topic must be active after reactivate");
+    assert!(
+        client.is_active(&name),
+        "topic must be active after reactivate"
+    );
 
     // The reactivate call completed without error and flipped `active` back to
     // true — that exercises the event-emission code path.  (Soroban's default
@@ -154,10 +160,7 @@ fn double_deactivate_returns_topic_already_inactive() {
     client.deactivate(&f.admin, &name);
 
     // Second deactivation must fail with TopicAlreadyInactive.
-    let err = client
-        .try_deactivate(&f.admin, &name)
-        .unwrap_err()
-        .unwrap();
+    let err = client.try_deactivate(&f.admin, &name).unwrap_err().unwrap();
     assert_eq!(err, TopicsError::TopicAlreadyInactive);
 }
 
@@ -214,10 +217,7 @@ fn full_lifecycle_round_trip() {
     assert!(!client.is_active(&name));
 
     // Double-deactivation is rejected.
-    let err = client
-        .try_deactivate(&f.admin, &name)
-        .unwrap_err()
-        .unwrap();
+    let err = client.try_deactivate(&f.admin, &name).unwrap_err().unwrap();
     assert_eq!(err, TopicsError::TopicAlreadyInactive);
 
     // Reactivate.

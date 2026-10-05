@@ -162,8 +162,8 @@ mod tests {
 
     use super::*;
     use crate::{CalloraSettlement, CalloraSettlementClient, SettlementError};
-    use soroban_sdk::Env;
     use soroban_sdk::testutils::{Address as _, Ledger as _};
+    use soroban_sdk::Env;
 
     fn setup() -> (Env, Address, Address) {
         let env = Env::default();

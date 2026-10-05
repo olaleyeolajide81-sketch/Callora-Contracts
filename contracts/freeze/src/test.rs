@@ -443,7 +443,10 @@ fn test_each_entrypoint_emits_exactly_one_event() {
                     == Some(Symbol::new(&env, "freeze_initialized"))
             })
             .count();
-        assert_eq!(count, 1, "init must emit exactly 1 freeze_initialized event");
+        assert_eq!(
+            count, 1,
+            "init must emit exactly 1 freeze_initialized event"
+        );
     }
 
     // --- set_freeze_operator ---

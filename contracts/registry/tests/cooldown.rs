@@ -281,10 +281,10 @@ fn cooldown_storage_keys_are_independent_per_developer() {
     let ts_b_after: u64 = env.ledger().timestamp();
 
     env.as_contract(&registry_id, || {
-        let ts_a = admin::last_developer_action(&env, &dev_a)
-            .expect("dev_a must have a cooldown record");
-        let ts_b = admin::last_developer_action(&env, &dev_b)
-            .expect("dev_b must have a cooldown record");
+        let ts_a =
+            admin::last_developer_action(&env, &dev_a).expect("dev_a must have a cooldown record");
+        let ts_b =
+            admin::last_developer_action(&env, &dev_b).expect("dev_b must have a cooldown record");
 
         // Each timestamp falls within the ledger range for that registration.
         assert!(
@@ -360,8 +360,7 @@ fn cooldown_non_admin_rejected_before_cooldown_check() {
 
     env.mock_all_auths();
     // non_admin is authenticated but is not the registry admin.
-    let result =
-        client.try_register_offering(&non_admin, &dev, &oid(&env, "nonauth"), &meta(&env));
+    let result = client.try_register_offering(&non_admin, &dev, &oid(&env, "nonauth"), &meta(&env));
     assert!(
         matches!(result, Err(Ok(RegistryError::Unauthorized))),
         "non-admin must get Unauthorized, not a cooldown error, got {result:?}"
@@ -386,8 +385,7 @@ fn cooldown_rejection_does_not_update_timestamp() {
     let ts_cell = std::cell::Cell::new(0u64);
     env.as_contract(&registry_id, || {
         ts_cell.set(
-            admin::last_developer_action(&env, &dev)
-                .expect("must exist after first registration"),
+            admin::last_developer_action(&env, &dev).expect("must exist after first registration"),
         );
     });
     let ts_after_first = ts_cell.get();
@@ -400,8 +398,8 @@ fn cooldown_rejection_does_not_update_timestamp() {
 
     // Timestamp must not have changed after a rejected attempt.
     env.as_contract(&registry_id, || {
-        let ts_after_rejection = admin::last_developer_action(&env, &dev)
-            .expect("must still exist after rejection");
+        let ts_after_rejection =
+            admin::last_developer_action(&env, &dev).expect("must still exist after rejection");
         assert_eq!(
             ts_after_first, ts_after_rejection,
             "a failed registration must not update the cooldown timestamp"
@@ -519,7 +517,10 @@ fn cooldown_rejection_leaves_no_partial_state() {
     advance(&env, admin::COOLDOWN_SECONDS / 2);
     let bad_oid = oid(&env, "blocked");
     let result = client.try_register_offering(&admin, &dev, &bad_oid, &meta(&env));
-    assert!(matches!(result, Err(Ok(RegistryError::AdminCooldownActive))));
+    assert!(matches!(
+        result,
+        Err(Ok(RegistryError::AdminCooldownActive))
+    ));
 
     // Registry state is exactly as before the rejected attempt.
     assert_eq!(client.registered_count(), 1);

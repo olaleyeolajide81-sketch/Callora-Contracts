@@ -162,7 +162,10 @@ fn test_reentrancy_via_token_transfer_is_blocked_by_auth() {
 
     assert!(result.is_ok(), "First deduct should succeed");
     assert!(token_mock.attack_attempted(), "The attack must have run");
-    assert!(token_mock.reentry_blocked(), "The vault must block re-entry");
+    assert!(
+        token_mock.reentry_blocked(),
+        "The vault must block re-entry"
+    );
     assert_eq!(
         vault_client.balance(),
         900,
@@ -186,7 +189,10 @@ fn test_batch_deduct_reentrancy_via_token() {
 
     assert!(result.is_ok(), "Batch deduct should succeed");
     assert!(token_mock.attack_attempted(), "The attack must have run");
-    assert!(token_mock.reentry_blocked(), "The vault must block re-entry");
+    assert!(
+        token_mock.reentry_blocked(),
+        "The vault must block re-entry"
+    );
     assert_eq!(
         vault_client.balance(),
         900,
@@ -241,7 +247,10 @@ fn test_withdraw_reentrancy_via_token() {
 
     assert!(result.is_ok(), "Withdraw should succeed");
     assert!(token_mock.attack_attempted(), "The attack must have run");
-    assert!(token_mock.reentry_blocked(), "The vault must block re-entry");
+    assert!(
+        token_mock.reentry_blocked(),
+        "The vault must block re-entry"
+    );
     assert_eq!(
         vault_client.balance(),
         900,

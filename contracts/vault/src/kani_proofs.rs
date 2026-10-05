@@ -140,8 +140,7 @@ mod proofs {
         let _ = request_id_a; // explicitly consumed — Kani sees full u64 range
         let _ = request_id_b;
         assert_eq!(
-            new_balance_a,
-            new_balance_b,
+            new_balance_a, new_balance_b,
             "request_id must not influence the post-deduct balance"
         );
     }

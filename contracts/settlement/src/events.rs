@@ -30,8 +30,8 @@ use crate::limits::MinBalanceChanged;
 use crate::types::{
     AdminBroadcast, AdminMigrationEvent, BalanceCreditedEvent, DailyWithdrawCapChanged,
     DeductionRecordedEvent, DepositEvent, DeveloperClaimWindowChanged, DeveloperForceCreditedEvent,
-    DeveloperWithdrawEvent, GlobalPool, PaymentReceivedEvent, UpgradeCancelledEvent, UpgradeProposedEvent,
-    VaultAcceptedEvent, VaultProposedEvent,
+    DeveloperWithdrawEvent, GlobalPool, PaymentReceivedEvent, UpgradeCancelledEvent,
+    UpgradeProposedEvent, VaultAcceptedEvent, VaultProposedEvent,
 };
 
 // ─── Topic constructors ──────────────────────────────────────────────────────

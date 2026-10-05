@@ -192,6 +192,14 @@ impl CalloraSettlement {
                 .unwrap_or_else(|| env.panic_with_error(SettlementError::PoolOverflow));
             global_pool.last_updated = env.ledger().timestamp();
             inst.set(&StorageKey::GlobalPool, &global_pool);
+
+            // Reconcile TotalReceived: pool credit path.
+            let total_received = inst.get::<_, i128>(&StorageKey::TotalReceived).unwrap_or(0);
+            let new_total_received = total_received
+                .checked_add(amount)
+                .unwrap_or_else(|| env.panic_with_error(SettlementError::PoolOverflow));
+            inst.set(&StorageKey::TotalReceived, &new_total_received);
+
             events::emit_payment_received(
                 &env,
                 &caller,
@@ -233,6 +241,13 @@ impl CalloraSettlement {
 
             // Add developer to paged persistent index (O(1) membership check).
             Self::index_insert(&env, dev_address.clone());
+
+            // Reconcile TotalReceived: developer credit path.
+            let total_received = inst.get::<_, i128>(&StorageKey::TotalReceived).unwrap_or(0);
+            let new_total_received = total_received
+                .checked_add(amount)
+                .unwrap_or_else(|| env.panic_with_error(SettlementError::DeveloperOverflow));
+            inst.set(&StorageKey::TotalReceived, &new_total_received);
 
             events::emit_payment_received(
                 &env,
@@ -320,6 +335,7 @@ impl CalloraSettlement {
                 .unwrap_or_else(|e| env.panic_with_error(e));
         }
 
+        let mut batch_total: i128 = 0;
         for item in items.iter() {
             let (dev, amount) = item;
             let balance_key = StorageKey::DeveloperBalance(dev.clone(), token.clone());
@@ -354,7 +370,21 @@ impl CalloraSettlement {
                     amount,
                 },
             );
+
+            // Accumulate for TotalReceived.
+            batch_total = batch_total
+                .checked_add(amount)
+                .unwrap_or_else(|| env.panic_with_error(SettlementError::DeveloperOverflow));
         }
+
+        // Reconcile TotalReceived: batch developer credit path.
+        // Written once after the loop to avoid redundant storage reads/writes.
+        let inst = env.storage().instance();
+        let total_received = inst.get::<_, i128>(&StorageKey::TotalReceived).unwrap_or(0);
+        let new_total_received = total_received
+            .checked_add(batch_total)
+            .unwrap_or_else(|| env.panic_with_error(SettlementError::DeveloperOverflow));
+        inst.set(&StorageKey::TotalReceived, &new_total_received);
     }
 
     /// Get current admin address
@@ -420,9 +450,22 @@ impl CalloraSettlement {
             .ok_or(SettlementError::NotInitialized)
     }
 
-    /// Return the cumulative total of all funds received via `receive_payment` and
-    /// `batch_receive_payment`, regardless of routing (pool or developer). Returns
-    /// `0` before any payments.
+    /// Return the cumulative total of all funds credited through every inbound
+    /// payment path.
+    ///
+    /// The following paths contribute to this metric:
+    /// - [`Self::receive_payment`] — both pool (`to_pool = true`) and
+    ///   developer (`to_pool = false`) branches.
+    /// - [`Self::batch_receive_payment`] — every item in the batch,
+    ///   regardless of which developer is credited.
+    /// - [`Self::record_deduction`] — accounting-only vault deductions that
+    ///   do not go through a standard credit path.
+    ///
+    /// Returns `0` before any payments have been received.
+    ///
+    /// # Arithmetic safety
+    /// Every contributing path uses `checked_add` so an overflow panics with
+    /// [`SettlementError::PoolOverflow`] rather than wrapping silently.
     pub fn get_total_received(env: Env) -> i128 {
         env.storage()
             .instance()
@@ -1632,7 +1675,7 @@ impl CalloraSettlement {
     pub fn batch_settle(
         env: Env,
         settlements: soroban_sdk::Vec<batch::SettleInput>,
-    ) -> soroban_sdk::Vec<batch::SettleOutcome> {
+    ) -> Result<soroban_sdk::Vec<batch::SettleOutcome>, SettlementError> {
         batch::batch_settle(&env, settlements)
     }
 
@@ -1775,7 +1818,11 @@ impl CalloraSettlement {
             .unwrap_or(0u32);
 
         // Load the last page (or create the first one).
-        let last_page_idx = if page_count == 0 { 0u32 } else { page_count - 1 };
+        let last_page_idx = if page_count == 0 {
+            0u32
+        } else {
+            page_count - 1
+        };
         let last_page_key = StorageKey::IndexPage(last_page_idx);
         let mut page: Vec<Address> = env
             .storage()
@@ -1857,14 +1904,14 @@ mod test_freeze;
 #[cfg(test)]
 mod test_reentrancy;
 
-/// #1135: cursor-based batch developer withdrawals.
-#[cfg(test)]
-mod test_batch_withdraw;
 #[cfg(test)]
 // Legacy suites targeting the pre-nonce payment API are intentionally not
 // compiled; current authorization behavior is covered by contracts/tests.
 #[cfg(test)]
 mod test_admin_migration;
+/// #1135: cursor-based batch developer withdrawals.
+#[cfg(test)]
+mod test_batch_withdraw;
 #[cfg(test)]
 mod test_error_codes;
 #[cfg(test)]

@@ -477,6 +477,8 @@ fn test_supported_token_updates_require_admin() {
     assert!(client.try_add_supported_token(&attacker, &token).is_err());
 
     client.add_supported_token(&admin, &token);
-    assert!(client.try_remove_supported_token(&attacker, &token).is_err());
+    assert!(client
+        .try_remove_supported_token(&attacker, &token)
+        .is_err());
     assert!(client.is_supported_token(&token));
 }

@@ -323,6 +323,7 @@ version = "0.0.1"
 dependencies = [
  "callora-revenue-pool",
  "callora-settlement",
+ "callora-vault",
  "rand 0.8.7",
  "soroban-sdk",
 ]
@@ -506,6 +507,7 @@ dependencies = [
 name = "callora-topics"
 version = "0.0.0"
 dependencies = [
+ "callora-validators",
  "soroban-sdk",
 ]
 
@@ -531,6 +533,7 @@ dependencies = [
  "callora-revenue-pool",
  "callora-settlement",
  "callora-validators",
+ "proptest",
  "rand 0.8.7",
  "soroban-sdk",
 ]

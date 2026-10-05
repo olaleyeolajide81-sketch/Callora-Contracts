@@ -97,10 +97,7 @@ impl CalloraVault {
             .instance()
             .get(&crate::DataKey::Balance)
             .unwrap_or(0);
-        let new_balance = balance
-            .checked_sub(amount)
-            .ok_or(VaultError::Overflow)?;
+        let new_balance = balance.checked_sub(amount).ok_or(VaultError::Overflow)?;
         Ok(new_balance)
     }
 }
-

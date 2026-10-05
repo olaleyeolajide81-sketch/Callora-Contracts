@@ -8,7 +8,9 @@
 
 extern crate std;
 
-use callora_upgrade::admin::{DEFAULT_COOLDOWN_SECONDS, MAX_COOLDOWN_SECONDS, MIN_COOLDOWN_SECONDS};
+use callora_upgrade::admin::{
+    DEFAULT_COOLDOWN_SECONDS, MAX_COOLDOWN_SECONDS, MIN_COOLDOWN_SECONDS,
+};
 use callora_upgrade::errors::UpgradeError;
 use callora_upgrade::events;
 use soroban_sdk::testutils::{Address as _, Events as _};

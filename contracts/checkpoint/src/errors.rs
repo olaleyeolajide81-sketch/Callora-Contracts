@@ -17,6 +17,7 @@ use soroban_sdk::contracterror;
 /// | 7    | AmountNegative       | Snapshot balance must not be negative                |
 /// | 8    | InvalidPageSize      | Page size must be greater than zero                  |
 /// | 9    | Overflow             | Arithmetic overflow detected                         |
+/// | 10   | NoAdminTransferPending | No admin transfer is pending                         |
 #[contracterror]
 #[derive(Clone, Copy, Debug, PartialEq)]
 #[repr(u32)]
@@ -39,4 +40,6 @@ pub enum CheckpointError {
     InvalidPageSize = 8,
     /// Arithmetic overflow detected (code 9).
     Overflow = 9,
+    /// No admin transfer is pending (code 10).
+    NoAdminTransferPending = 10,
 }

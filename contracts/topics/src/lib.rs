@@ -39,8 +39,8 @@ pub use errors::TopicsError;
 #[cfg(test)]
 mod test_lifecycle;
 
-use soroban_sdk::{contract, contractimpl, contracttype, Address, Env, String, Symbol};
 use callora_validators::normalize_visible_ascii;
+use soroban_sdk::{contract, contractimpl, contracttype, Address, Env, String, Symbol};
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -161,8 +161,7 @@ impl CalloraTopics {
         // control characters, or have leading / trailing whitespace.  This
         // prevents oversized payloads from inflating storage and event costs
         // and makes the on-chain description byte-stable visible ASCII.
-        normalize_visible_ascii(&description)
-            .map_err(|_| TopicsError::InvalidDescription)?;
+        normalize_visible_ascii(&description).map_err(|_| TopicsError::InvalidDescription)?;
 
         let record = TopicRecord {
             name: name.clone(),

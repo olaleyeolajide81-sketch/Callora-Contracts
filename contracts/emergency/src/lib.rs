@@ -22,12 +22,13 @@
 //! let removed = before & !after;
 //! ```
 
-mod views;
 pub mod migrate;
+mod views;
 
 pub use views::{
     capabilities, ALL_CAPABILITIES, CAP_EMERGENCY_DRAIN_CANCEL, CAP_EMERGENCY_DRAIN_EXECUTE,
-    CAP_EMERGENCY_DRAIN_PROPOSE, CAP_EMERGENCY_PAUSE, CAP_EMERGENCY_UNPAUSE, CAP_PENDING_DRAIN_VIEW,
+    CAP_EMERGENCY_DRAIN_PROPOSE, CAP_EMERGENCY_PAUSE, CAP_EMERGENCY_UNPAUSE,
+    CAP_PENDING_DRAIN_VIEW,
 };
 
 use soroban_sdk::{contract, contractimpl, Env};

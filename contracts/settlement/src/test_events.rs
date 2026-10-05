@@ -146,7 +146,6 @@ mod event_tests {
             .collect()
     }
 
-
     // ─── Price registry ─────────────────────────────────────────────────────
 
     #[test]

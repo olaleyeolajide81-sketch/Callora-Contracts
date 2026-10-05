@@ -19,27 +19,37 @@ use soroban_sdk::{contract, contractimpl, testutils::Events as _, Address, Env, 
 
 /// Callee that always reverts. Stands in for any downstream contract
 /// (e.g. `settlement`) failing mid-call.
-#[contract]
-pub struct AlwaysPanicsCallee;
+mod panicking {
+    use super::*;
 
-#[contractimpl]
-impl AlwaysPanicsCallee {
-    /// Always panics; return type only exists to match [`OkCallee::boom`].
-    pub fn boom(_env: Env) -> i128 {
-        panic!("callee deliberately reverted");
+    #[contract]
+    pub struct AlwaysPanicsCallee;
+
+    #[contractimpl]
+    impl AlwaysPanicsCallee {
+        /// Always panics; return type only exists to match [`OkCallee::boom`].
+        pub fn boom(_env: Env) -> i128 {
+            panic!("callee deliberately reverted");
+        }
     }
 }
+pub use panicking::AlwaysPanicsCallee;
 
 /// Callee that succeeds. Used as the control case.
-#[contract]
-pub struct OkCallee;
+mod ok {
+    use super::*;
 
-#[contractimpl]
-impl OkCallee {
-    pub fn boom(_env: Env) -> i128 {
-        42
+    #[contract]
+    pub struct OkCallee;
+
+    #[contractimpl]
+    impl OkCallee {
+        pub fn boom(_env: Env) -> i128 {
+            42
+        }
     }
 }
+pub use ok::OkCallee;
 
 /// Minimal caller mirroring the `deduct` pattern used throughout this
 /// workspace: write local state, invoke a callee, then emit an event only

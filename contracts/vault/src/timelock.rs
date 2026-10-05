@@ -151,8 +151,8 @@ pub(crate) fn get_pending_pause(env: &Env) -> Option<PendingPause> {
         PendingPause::try_from_val(env, &raw).ok()
     } else {
         let legacy = LegacyPendingPause::try_from_val(env, &raw).ok()?;
-        let expires_at = saturating_deadline(legacy.execute_after, PROPOSAL_GRACE_SECONDS)
-            .unwrap_or(u64::MAX);
+        let expires_at =
+            saturating_deadline(legacy.execute_after, PROPOSAL_GRACE_SECONDS).unwrap_or(u64::MAX);
         let proposal = PendingPause {
             proposed_at: legacy.proposed_at,
             execute_after: legacy.execute_after,
@@ -187,8 +187,8 @@ pub(crate) fn get_pending_upgrade(env: &Env) -> Option<PendingUpgrade> {
         PendingUpgrade::try_from_val(env, &raw).ok()
     } else {
         let legacy = LegacyPendingUpgrade::try_from_val(env, &raw).ok()?;
-        let expires_at = saturating_deadline(legacy.execute_after, PROPOSAL_GRACE_SECONDS)
-            .unwrap_or(u64::MAX);
+        let expires_at =
+            saturating_deadline(legacy.execute_after, PROPOSAL_GRACE_SECONDS).unwrap_or(u64::MAX);
         let proposal = PendingUpgrade {
             wasm_hash: legacy.wasm_hash,
             proposed_at: legacy.proposed_at,
@@ -224,8 +224,8 @@ pub(crate) fn get_pending_sweep(env: &Env) -> Option<PendingSweep> {
         PendingSweep::try_from_val(env, &raw).ok()
     } else {
         let legacy = LegacyPendingSweep::try_from_val(env, &raw).ok()?;
-        let expires_at = saturating_deadline(legacy.execute_after, PROPOSAL_GRACE_SECONDS)
-            .unwrap_or(u64::MAX);
+        let expires_at =
+            saturating_deadline(legacy.execute_after, PROPOSAL_GRACE_SECONDS).unwrap_or(u64::MAX);
         let proposal = PendingSweep {
             to: legacy.to,
             amount: legacy.amount,

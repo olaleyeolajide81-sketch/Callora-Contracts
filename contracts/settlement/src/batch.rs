@@ -1,4 +1,4 @@
-use crate::{CalloraSettlement, MAX_BATCH_SIZE, SettlementError};
+use crate::{CalloraSettlement, SettlementError, MAX_BATCH_SIZE};
 use soroban_sdk::{contracttype, Address, Env, Vec};
 
 #[contracttype]
@@ -34,16 +34,6 @@ impl From<SettlementError> for SettleOutcome {
     }
 }
 
-/// Errors returned by [`batch_settle`] when the whole batch is
-/// rejected before any per-item processing occurs.
-#[contracttype]
-#[derive(Clone, Debug, PartialEq)]
-pub enum SettlementError {
-    BatchEmpty,
-    BatchTooLarge,
-    CrossTenantBatch,
-}
-
 pub fn batch_settle(
     env: &Env,
     settlements: Vec<SettleInput>,
@@ -51,11 +41,11 @@ pub fn batch_settle(
     let mut outcomes = Vec::new(env);
 
     if settlements.is_empty() {
-        return Err((SettlementError::BatchEmpty));
+        return Err(SettlementError::BatchEmpty);
     }
 
     if settlements.len() > MAX_BATCH_SIZE {
-        return Err((SettlementError::BatchTooLarge));
+        return Err(SettlementError::BatchTooLarge);
     }
 
     // Cross-tenant validation before mutation: every item must belong to the
@@ -66,7 +56,7 @@ pub fn batch_settle(
 
     for input in settlements.iter() {
         if input.developer != claimant {
-            return Err((SettlementError::CrossTenantBatch));
+            return Err(SettlementError::CrossTenantBatch);
         }
     }
 
@@ -94,7 +84,7 @@ mod test {
     use crate::MAX_BATCH_SIZE;
     use soroban_sdk::{testutils::Address as _, Address, Env, Vec};
 
-    fn make_input(env: &Env, dev: Address) -> SettleInput {
+    fn make_input(_env: &Env, dev: Address) -> SettleInput {
         SettleInput {
             developer: dev,
             amount: 100,
@@ -109,7 +99,7 @@ mod test {
 
         let result = batch_settle(&env, settlements);
         assert!(result.is_err());
-        assert_eq!(result.unwrap_error(), SettlementError::BatchEmpty);
+        assert_eq!(result.unwrap_err(), SettlementError::BatchEmpty);
     }
 
     #[test]
@@ -124,7 +114,7 @@ mod test {
 
         let result = batch_settle(&env, settlements);
         assert!(result.is_err());
-        assert_eq!(result.unwrap_error(), SettlementError::BatchTooLarge);
+        assert_eq!(result.unwrap_err(), SettlementError::BatchTooLarge);
     }
 
     #[test]
@@ -140,6 +130,6 @@ mod test {
 
         let result = batch_settle(&env, settlements);
         assert!(result.is_err());
-        assert_eq!(result.unwrap_error(), SettlementError::CrossTenantBatch);
+        assert_eq!(result.unwrap_err(), SettlementError::CrossTenantBatch);
     }
 }

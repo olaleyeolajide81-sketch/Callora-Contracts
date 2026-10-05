@@ -758,9 +758,7 @@ impl CalloraEscrow {
             .get(&StorageKey::PendingAdmin)
             .ok_or(EscrowError::NoPendingAdmin)?;
 
-        env.storage()
-            .instance()
-            .remove(&StorageKey::PendingAdmin);
+        env.storage().instance().remove(&StorageKey::PendingAdmin);
 
         env.events()
             .publish((events::event_admin_cancelled(&env), caller), cancelled);

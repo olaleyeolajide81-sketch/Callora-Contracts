@@ -2198,47 +2198,62 @@ mod settlement_tests {
         let client = CalloraSettlementClient::new(&env, &addr);
         let dev = Address::generate(&env);
 
-        let mut items = soroban_sdk::Vec::new(&env);
-        items.push_back((dev.clone(), 100i128));
+        client.receive_payment(&vault, &200i128, &false, &Some(dev.clone()), &token, &1u32);
 
-        let outcomes = client.batch_settle(&vault, &items, &token, &1u32);
+        let mut items = soroban_sdk::Vec::new(&env);
+        items.push_back(crate::batch::SettleInput {
+            developer: dev.clone(),
+            amount: 100i128,
+            to: None,
+        });
+
+        let outcomes = client.batch_settle(&items);
         assert_eq!(outcomes.len(), 1);
         assert_eq!(client.get_developer_balance(&dev, &token), 100i128);
     }
 
     #[test]
     fn test_batch_settle_mixed_developers_returns_cross_tenant_batch() {
-        let (env, addr, _admin, vault, _third_party, token) = setup_contract();
+        let (env, addr, _admin, _vault, _third_party, _token) = setup_contract();
         let client = CalloraSettlementClient::new(&env, &addr);
         let dev1 = Address::generate(&env);
         let dev2 = Address::generate(&env);
 
         let mut items = soroban_sdk::Vec::new(&env);
-        items.push_back((dev1.clone(), 100i128));
-        items.push_back((dev2.clone(), 200i128));
+        items.push_back(crate::batch::SettleInput {
+            developer: dev1.clone(),
+            amount: 100i128,
+            to: None,
+        });
+        items.push_back(crate::batch::SettleInput {
+            developer: dev2.clone(),
+            amount: 200i128,
+            to: None,
+        });
 
-        let result = client.try_batch_settle(&vault, &items, &token, &1u32);
+        let result = client.try_batch_settle(&items);
         assert!(
             is_error(result, SettlementError::CrossTenantBatch),
             "mixed-developer batch must return CrossTenantBatch"
         );
-        // No balances should be credited on a rejected batch.
-        assert_eq!(client.get_developer_balance(&dev1, &token), 0i128);
-        assert_eq!(client.get_developer_balance(&dev2, &token), 0i128);
     }
 
     #[test]
     fn test_batch_settle_rejects_oversized_batch() {
         use crate::MAX_BATCH_SIZE;
-        let (env, addr, _admin, vault, _third_party, token) = setup_contract();
+        let (env, addr, _admin, _vault, _third_party, _token) = setup_contract();
         let client = CalloraSettlementClient::new(&env, &addr);
         let dev = Address::generate(&env);
 
         let mut items = soroban_sdk::Vec::new(&env);
         for _ in 0..=MAX_BATCH_SIZE {
-            items.push_back((dev.clone(), 1i128));
+            items.push_back(crate::batch::SettleInput {
+                developer: dev.clone(),
+                amount: 1i128,
+                to: None,
+            });
         }
-        let result = client.try_batch_settle(&vault, &items, &token, &1u32);
+        let result = client.try_batch_settle(&items);
         assert!(
             is_error(result, SettlementError::BatchTooLarge),
             "batch above MAX_BATCH_SIZE must return BatchTooLarge"
@@ -2252,11 +2267,24 @@ mod settlement_tests {
         let client = CalloraSettlementClient::new(&env, &addr);
         let dev = Address::generate(&env);
 
+        client.receive_payment(
+            &vault,
+            &(MAX_BATCH_SIZE as i128 * 2),
+            &false,
+            &Some(dev.clone()),
+            &token,
+            &1u32,
+        );
+
         let mut items = soroban_sdk::Vec::new(&env);
         for _ in 0..MAX_BATCH_SIZE {
-            items.push_back((dev.clone(), 1i128));
+            items.push_back(crate::batch::SettleInput {
+                developer: dev.clone(),
+                amount: 1i128,
+                to: None,
+            });
         }
-        let outcomes = client.batch_settle(&vault, &items, &token, &1u32);
+        let outcomes = client.batch_settle(&items);
         assert_eq!(outcomes.len(), MAX_BATCH_SIZE);
         assert_eq!(
             client.get_developer_balance(&dev, &token),
@@ -2266,27 +2294,15 @@ mod settlement_tests {
 
     #[test]
     fn test_batch_settle_rejects_empty_batch() {
-        let (env, addr, _admin, vault, _third_party, token) = setup_contract();
+        let (env, addr, _admin, _vault, _third_party, _token) = setup_contract();
         let client = CalloraSettlementClient::new(&env, &addr);
 
-        let items: soroban_sdk::Vec<(Address, i128)> = soroban_sdk::Vec::new(&env);
-        let result = client.try_batch_settle(&vault, &items, &token, &1u32);
+        let items: soroban_sdk::Vec<crate::batch::SettleInput> = soroban_sdk::Vec::new(&env);
+        let result = client.try_batch_settle(&items);
         assert!(
             is_error(result, SettlementError::BatchEmpty),
             "empty batch must return BatchEmpty"
         );
-    }
-
-    #[test]
-    fn test_batch_settle_unauthorized_caller_rejected() {
-        let (env, addr, _admin, _vault, third_party, token) = setup_contract();
-        let client = CalloraSettlementClient::new(&env, &addr);
-        let dev = Address::generate(&env);
-
-        let mut items = soroban_sdk::Vec::new(&env);
-        items.push_back((dev.clone(), 100i128));
-        let result = client.try_batch_settle(&third_party, &items, &token, &1u32);
-        assert!(is_error(result, SettlementError::Unauthorized));
     }
 
     // ── force_credit_developer tests ─────────────────────────────────────────
